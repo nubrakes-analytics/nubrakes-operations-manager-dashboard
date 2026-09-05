@@ -1,43 +1,508 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NuBrakes | Operations Manager</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>NuBrakes Operations Manager</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
-:root{--bg:#f8fafc;--card:#fff;--text:#111827;--muted:#6b7280;--soft:#9ca3af;--border:#e5e7eb;--border-soft:#f1f5f9;--green:#10b981;--red:#f43f5e;--indigo:#6366f1;--blue:#0ea5e9;--teal:#14b8a6;--violet:#8b5cf6;--amber:#f59e0b;--dark:#111827;--shadow:0 1px 4px rgba(0,0,0,.06);--radius:12px}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}button,input,select{font:inherit}.app{min-height:100vh;padding:20px 16px}.app-inner{max-width:1240px;margin:0 auto}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.title{margin:0;font-size:20px;font-weight:700}.subtitle{margin:3px 0 0;font-size:12px;color:var(--muted)}h2{font-size:14px;margin:0 0 3px}.status-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.badge,.coverage,.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;border:1px solid;font-size:11px;font-weight:600;background:#fff}.badge.live{background:#ecfdf5;border-color:#6ee7b7;color:#065f46}.badge-dot{width:6px;height:6px;border-radius:999px;background:#10b981}.coverage,.chip{border-color:var(--border);color:var(--muted)}.toolbar{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;align-items:center}.period-btn{padding:6px 16px;border-radius:20px;border:0;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);box-shadow:0 1px 3px rgba(0,0,0,.08)}.period-btn.active{background:var(--dark);color:#fff;box-shadow:none}.field{display:grid;gap:3px;font-size:9px;text-transform:uppercase;font-weight:700;color:var(--soft)}.select,input{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#374151;background:#fff;min-width:150px;height:35px}select{cursor:pointer}.tabs{display:flex;margin-bottom:22px;border-bottom:1.5px solid var(--border);overflow-x:auto}.tabs button{padding:8px 20px;border:0;background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--soft);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap}.tabs button.active{color:var(--text);border-bottom-color:var(--text)}.tabs button:hover{color:var(--text)}.kpi-group{margin-bottom:20px}.group-name{font-size:10px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;margin:0 0 5px}.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.card,.section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border-soft)}.card{padding:16px 18px 14px;min-height:114px}.metric{font-size:10px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}.value{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;font-variant-numeric:tabular-nums}.compare{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:10px;color:var(--soft)}.delta{font-size:11px;font-weight:600}.delta.goal-pos{color:var(--green)}.delta.goal-neg{color:var(--red)}.section{padding:16px 18px;margin-bottom:16px}.section>.small{margin-top:2px;margin-bottom:14px}.scroll{overflow:auto;border:1px solid var(--border-soft);border-radius:8px}table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;color:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}td,th{border-bottom:1px solid var(--border-soft);padding:8px 10px;text-align:right;font-variant-numeric:tabular-nums}tbody tr:last-child td{border-bottom:0}tbody tr:hover td{background:#fafbff}td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}.link{color:#4f46e5;font-weight:600;cursor:pointer}.median{height:2px;background:#eef2f7;margin-top:5px;position:relative}.median i{display:block;height:2px;background:var(--indigo)}.subbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}.subbar>div{display:flex;gap:4px;background:#f1f5f9;border-radius:8px;padding:3px}.subbar button,.section button,.detail button{padding:5px 12px;border-radius:6px;border:0;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--soft)}.subbar button.active,.subbar button:hover,.section button:hover,.detail button:hover{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}.notice{max-width:1240px;margin:auto;padding:18px;border-radius:12px;background:#fff;border:1px solid var(--border);color:var(--muted)}.chart-wrap{height:350px}.detail{position:fixed;right:0;top:0;width:min(540px,100vw);height:100vh;background:#fff;border-left:1px solid var(--border);box-shadow:-8px 0 22px rgba(0,0,0,.1);padding:22px;overflow:auto;z-index:3}.detail .close{float:right;background:#f1f5f9}.hidden{display:none!important}.warn{color:#c2410c}.small{font-size:11px;color:var(--muted)}.goal-table input{width:120px;min-width:0}.definition td{vertical-align:top;white-space:normal}.fallback td,.fallback th{text-align:left}@media(max-width:1023px){.top{align-items:flex-start}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:639px){.app{padding:12px}.top{display:block}.status-row{justify-content:flex-start;margin-top:8px}.toolbar{align-items:stretch}.field{flex:1}.select,.field input{min-width:100%;width:100%}.tabs button{padding-inline:12px}.cards{grid-template-columns:1fr}.card{min-height:auto}.sticky-name{position:sticky;left:0;background:#fff;z-index:1}}
-</style><style>.spark-wrap{display:flex;align-items:center;gap:7px;height:34px;margin:4px 0 2px}.sparkline{display:block;width:100%;height:32px}.spark-caption{flex:0 0 auto;font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;writing-mode:vertical-rl;transform:rotate(180deg)}.card:has(.sparkline){min-height:152px}</style></head><body><main class="app" id="app"><div class="notice">Loading NuBrakes operations and labor feeds…</div></main><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script><script>
+:root{color-scheme:light;--bg:#f7f8fa;--card:#fff;--text:#111827;--muted:#6b7280;--soft:#9ca3af;--border:#e5e7eb;--border-soft:#f1f5f9;--green:#10b981;--red:#f43f5e;--indigo:#6366f1;--dark:#111827;--shadow:0 1px 4px rgba(0,0,0,.06);--radius:12px;
+--heat-g1:#f0fdf7;--heat-g2:#dcfce9;--heat-g3:#bbf3d6;--heat-g4:#93e8bf;--heat-r1:#fff5f7;--heat-r2:#ffe6ea;--heat-r3:#fecdd6;--heat-r4:#fbb3c1}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-feature-settings:"tnum" 0}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.app{min-height:100vh;padding:20px 16px}
+.app-inner{max-width:1320px;margin:0 auto}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+.title{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.subtitle{margin:3px 0 0;font-size:12px;color:var(--muted)}
+h2{font-size:14px;margin:0 0 3px}
+.status-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.badge,.coverage,.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;border:1px solid;font-size:11px;font-weight:600;background:#fff}
+.badge.live{background:#ecfdf5;border-color:#6ee7b7;color:#065f46}
+.badge-dot{width:6px;height:6px;border-radius:999px;background:#10b981}
+.coverage,.chip{border-color:var(--border);color:var(--muted)}
+.toolbar{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;align-items:flex-end}
+.field{display:grid;gap:3px;font-size:9px;text-transform:uppercase;font-weight:700;color:var(--soft);letter-spacing:.05em}
+.select,input{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#374151;background:#fff;min-width:150px;height:35px}
+select{cursor:pointer}
+.tabs{display:flex;margin-bottom:22px;border-bottom:1.5px solid var(--border);overflow-x:auto}
+.tabs button{padding:8px 20px;border:0;background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--soft);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap}
+.tabs button.active{color:var(--text);border-bottom-color:var(--text)}
+.tabs button:hover{color:var(--text)}
+.kpi-group{margin-bottom:20px}
+.group-name{font-size:10px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;margin:0 0 5px}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.card,.section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border-soft)}
+.card{padding:16px 18px 14px;min-height:152px}
+.metric{font-size:10px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.value{font-size:22px;font-weight:700;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.compare{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:10px;color:var(--soft)}
+.delta{font-size:11px;font-weight:600}
+.delta.goal-pos{color:#047857}.delta.goal-neg{color:#be123c}
+.spark-wrap{display:flex;align-items:center;gap:7px;height:34px;margin:4px 0 2px}
+.sparkline{display:block;width:100%;height:32px}
+.spark-caption{flex:0 0 auto;font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;writing-mode:vertical-rl;transform:rotate(180deg)}
+.section{padding:16px 18px;margin-bottom:16px}
+.section>.small{margin-top:2px;margin-bottom:14px}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sec-head .small{margin:2px 0 0}
+.scroll{overflow:auto;border:1px solid var(--border-soft);border-radius:8px;max-height:74vh}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;white-space:nowrap}
+th{position:sticky;top:0;background:#f8fafc;color:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.04em;z-index:2;box-shadow:inset 0 -1px 0 var(--border)}
+th[data-sort]{cursor:pointer}th[data-sort]:hover{color:var(--text)}
+td,th{border-bottom:1px solid var(--border-soft);padding:8px 10px;text-align:right;font-variant-numeric:tabular-nums}
+td:first-child,th:first-child,td.txt,th.txt{text-align:left}
+tbody tr:hover td:not(.heat){background:#fafbff}
+.pin{position:sticky;left:0;background:#fff;z-index:1;box-shadow:1px 0 0 var(--border)}
+th.pin{background:#f8fafc;z-index:3;box-shadow:1px 0 0 var(--border),inset 0 -1px 0 var(--border)}
+tbody tr:hover .pin{background:#fafbff}
+tfoot td{position:sticky;bottom:0;background:#fbfbfd;font-weight:700;border-top:1.5px solid var(--border);border-bottom:0;z-index:1}
+tfoot td.pin{z-index:2;background:#fbfbfd}
+.heat{border-radius:0}
+.link{color:#4338ca;font-weight:600;cursor:pointer}
+.link:hover{text-decoration:underline}
+.seg{display:inline-flex;gap:4px;background:#f1f5f9;border-radius:9px;padding:3px;flex-wrap:wrap}
+.seg button{padding:5px 12px;border-radius:6px;border:0;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--soft)}
+.seg button:hover{color:var(--text)}
+.seg button.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.toggle{padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.toggle:hover{border-color:#cbd5e1;color:var(--text)}
+.toggle[aria-pressed="true"]{background:var(--dark);border-color:var(--dark);color:#fff}
+.toggle .dot{width:7px;height:7px;border-radius:999px;background:#cbd5e1}
+.toggle[aria-pressed="true"] .dot{background:#6ee7b7}
+.picker{position:relative}
+.picker>summary{list-style:none;cursor:pointer;padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:600}
+.picker>summary::-webkit-details-marker{display:none}
+.picker[open]>summary{border-color:var(--dark);color:var(--text)}
+.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:6;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px;box-shadow:0 12px 28px rgba(15,23,42,.16);width:262px;max-height:340px;overflow:auto}
+.menu label{display:flex;gap:8px;align-items:center;font-size:12px;padding:4px 2px;cursor:pointer;color:#374151;text-transform:none;font-weight:500;letter-spacing:0}
+.menu input{min-width:0;height:auto;width:auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow:auto;padding:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+.pill:hover{border-color:#cbd5e1;color:var(--text)}
+.pill[aria-pressed="true"]{border-color:#cbd5e1;color:var(--text);background:#fbfbfd}
+.pill .dot{width:8px;height:8px;border-radius:999px;background:#e5e7eb;flex:0 0 auto}
+.legend{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+.legend i{display:block;width:20px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.05)}
+.rangebar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.notice{max-width:1320px;margin:auto;padding:18px;border-radius:12px;background:#fff;border:1px solid var(--border);color:var(--muted)}
+.notice.small{margin-bottom:16px;padding:10px 14px}
+.chart-wrap{height:380px}
+.detail{position:fixed;right:0;top:0;width:min(540px,100vw);height:100vh;background:#fff;border-left:1px solid var(--border);box-shadow:-8px 0 22px rgba(0,0,0,.1);padding:22px;overflow:auto;z-index:9}
+.detail .close{float:right;background:#f1f5f9;border:0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.hidden{display:none!important}
+.warn{color:#c2410c}
+.small{font-size:11px;color:var(--muted);line-height:1.5}
+.goal-table input{width:120px;min-width:0}
+.definition td{vertical-align:top;white-space:normal}
+.definition td:nth-child(2),.definition td:nth-child(3),.definition td:nth-child(4),.definition td:nth-child(5){text-align:left}
+.definition th{text-align:left}
+.fallback td,.fallback th{text-align:left}
+.btn{padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#374151}
+.btn:hover{border-color:#cbd5e1}
+@media(max-width:1023px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:639px){.app{padding:12px}.top{display:block}.status-row{justify-content:flex-start;margin-top:8px}.field{flex:1}.select,.field input{min-width:100%;width:100%}.tabs button{padding-inline:12px}.cards{grid-template-columns:1fr}.card{min-height:auto}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<main class="app" id="app"><div class="notice">Loading NuBrakes operations and labor feeds…</div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
 /* One shared metric registry: formulas are evaluated only by summarize(), never render functions. */
 const OPS_URL='https://nubrakes-analytics.github.io/NuBrakes-Copilot/data/fact_technician_operations_daily.json';
 const LABOR_URL='https://nubrakes-analytics.github.io/NuBrakes-Copilot/data/fact_technician_labor_weekly.json';
 const LABOR_FALLBACK='https://raw.githubusercontent.com/nubrakes-analytics/NuBrakes-Copilot/main/data/fact_technician_labor_weekly.json';
+/* dir: +1 higher is better, -1 lower is better, 0 volume-driven (never heat-shaded). */
 const METRICS={
- revenue:{key:'revenue',label:'Revenue',format:'currency',formula:'Σ revenue_amount',fields:'revenue_amount',description:'Invoiced revenue; booked revenue is not used.'}, revenuePace:{key:'revenuePace',label:'Revenue Pace',format:'currency',formula:'MTD revenue ÷ business days elapsed × business days in month',fields:'revenue_amount, worked_day_flag',description:'Business days are days with any worked technician in the active filter.'}, goal:{key:'goal',label:'Monthly Revenue Goal',format:'currency',formula:'Manager-supplied goal',fields:'in-memory goal state',description:'Editable and exportable; not stored in browser storage.'}, variance:{key:'variance',label:'Variance to Goal',format:'currency',formula:'Revenue Pace − Monthly Revenue Goal',fields:'revenue_amount, worked_day_flag, goals',description:'Also reports percentage of goal.'},
- jobs:{key:'jobs',label:'Jobs Completed',format:'number',formula:'Σ completed_jobs_count',fields:'completed_jobs_count',description:''},jobsPace:{key:'jobsPace',label:'Jobs Pace',format:'number',formula:'MTD jobs ÷ elapsed business days × business days in month',fields:'completed_jobs_count, worked_day_flag',description:''},avgTicket:{key:'avgTicket',label:'Average Ticket',format:'currency',formula:'Σ revenue_amount ÷ Σ invoiced_jobs_count',fields:'revenue_amount, invoiced_jobs_count',description:'Ratio of summed components, not an average of averages.'},serviceRate:{key:'serviceRate',label:'Service Call Rate',format:'percent',formula:'Σ service_call_jobs_count ÷ Σ completed_jobs_count',fields:'service_call_jobs_count, completed_jobs_count',description:'Denominator is completed jobs, not invoiced jobs.'},
- activeTechs:{key:'activeTechs',label:'Active Technicians',format:'number',formula:'distinct technician_id with a worked day',fields:'technician_id, worked_day_flag',description:''},daysWorked:{key:'daysWorked',label:'Days Worked',format:'number',formula:'Σ worked_day_flag',fields:'worked_day_flag',description:'Zero-activity days are excluded from per-day averages.'},jobsPerTech:{key:'jobsPerTech',label:'Jobs per Technician',format:'number',formula:'Σ completed jobs ÷ active technicians',fields:'completed_jobs_count, technician_id, worked_day_flag',description:''},revPerTech:{key:'revPerTech',label:'Revenue per Technician',format:'currency',formula:'Σ revenue ÷ active technicians',fields:'revenue_amount, technician_id, worked_day_flag',description:''},revenuePerDay:{key:'revenuePerDay',label:'Revenue per Day',format:'currency',formula:'Σ revenue ÷ Σ worked_day_flag',fields:'revenue_amount, worked_day_flag',description:'Uses days worked, not calendar days.'},jobsPerDay:{key:'jobsPerDay',label:'Jobs per Day',format:'number',formula:'Σ completed jobs ÷ Σ worked_day_flag',fields:'completed_jobs_count, worked_day_flag',description:'Uses days worked, not calendar days.'},invoicedHours:{key:'invoicedHours',label:'Invoiced Hours',format:'hours',formula:'Σ invoiced_minutes ÷ 60',fields:'invoiced_minutes',description:''},utilization:{key:'utilization',label:'Technician Utilization',format:'percent',formula:'Invoiced Hours ÷ allocated clocked hours',fields:'invoiced_minutes, Hours',description:'Labor coverage required.',requiresLabor:true},clockedHours:{key:'clockedHours',label:'Clocked Hours',format:'hours',formula:'Σ allocated Hours',fields:'Hours, worked_day_flag',description:'Weekly labor is split evenly over worked days.',requiresLabor:true},laborCost:{key:'laborCost',label:'Labor Cost',format:'currency',formula:'Σ allocated Total Employer Cost',fields:'Total Employer Cost, worked_day_flag',description:'Labor coverage required.',requiresLabor:true},laborPct:{key:'laborPct',label:'Labor Cost % of Revenue',format:'percent',formula:'Labor Cost ÷ Revenue',fields:'Total Employer Cost, revenue_amount',description:'Labor coverage required.',requiresLabor:true},parts:{key:'parts',label:'Parts Cost',format:'currency',formula:'Σ parts_cost_amount',fields:'parts_cost_amount',description:''},grossProfit:{key:'grossProfit',label:'Simple Gross Profit',format:'currency',formula:'Revenue − Labor Cost − Parts Cost',fields:'revenue_amount, Total Employer Cost, parts_cost_amount',description:'Labor coverage required.',requiresLabor:true},grossMargin:{key:'grossMargin',label:'Simple Gross Margin',format:'percent',formula:'Simple Gross Profit ÷ Revenue',fields:'revenue_amount, Total Employer Cost, parts_cost_amount',description:'Labor coverage required.',requiresLabor:true},grossPerTech:{key:'grossPerTech',label:'Simple Gross Profit per Technician',format:'currency',formula:'Simple Gross Profit ÷ Active Technicians',fields:'revenue_amount, Total Employer Cost, parts_cost_amount, technician_id',description:'Labor coverage required.',requiresLabor:true}
+ revenue:{key:'revenue',label:'Revenue',format:'currency',dir:1,formula:'Σ revenue_amount',fields:'revenue_amount',description:'Invoiced revenue; booked revenue is not used.'},
+ revenuePace:{key:'revenuePace',label:'Revenue Pace',format:'currency',dir:1,formula:'MTD revenue ÷ business days elapsed × business days in month',fields:'revenue_amount, worked_day_flag',description:'Business days are days with any worked technician in the active filter.'},
+ goal:{key:'goal',label:'Monthly Revenue Goal',format:'currency',dir:0,formula:'Manager-supplied goal',fields:'in-memory goal state',description:'Editable and exportable; not stored in browser storage.'},
+ variance:{key:'variance',label:'Variance to Goal',format:'currency',dir:1,formula:'Revenue Pace − Monthly Revenue Goal',fields:'revenue_amount, worked_day_flag, goals',description:'Also reports percentage of goal.'},
+ jobs:{key:'jobs',label:'Jobs Completed',format:'number',dir:1,formula:'Σ completed_jobs_count',fields:'completed_jobs_count',description:''},
+ jobsPace:{key:'jobsPace',label:'Jobs Pace',format:'number',dir:1,formula:'MTD jobs ÷ elapsed business days × business days in month',fields:'completed_jobs_count, worked_day_flag',description:''},
+ avgTicket:{key:'avgTicket',label:'Average Ticket',format:'currency',dir:1,formula:'Σ revenue_amount ÷ Σ invoiced_jobs_count',fields:'revenue_amount, invoiced_jobs_count',description:'Ratio of summed components, not an average of averages.'},
+ ticketCompletion:{key:'ticketCompletion',label:'Ticket Completion Rate',format:'percent',dir:1,formula:'Σ revenue_amount ÷ Σ booked_revenue_amount',fields:'revenue_amount, booked_revenue_amount',description:'Completed revenue against the revenue booked on the ticket. Above 100% means work completed on site came in above what was booked.'},
+ rotorAttach:{key:'rotorAttach',label:'Rotor Attachment Rate',format:'percent',dir:1,formula:'Σ rotor_attached_jobs_count ÷ Σ rotor_eligible_jobs_count',fields:'rotor_attached_jobs_count, rotor_eligible_jobs_count',description:'Eligible jobs only; jobs with no rotor opportunity are excluded from the denominator.'},
+ serviceRate:{key:'serviceRate',label:'Service Call Rate',format:'percent',dir:-1,formula:'Σ service_call_jobs_count ÷ Σ completed_jobs_count',fields:'service_call_jobs_count, completed_jobs_count',description:'Denominator is completed jobs, not invoiced jobs. Lower is better.'},
+ activeTechs:{key:'activeTechs',label:'Active Technicians',format:'number',dir:0,formula:'distinct technician_id with a worked day',fields:'technician_id, worked_day_flag',description:''},
+ daysWorked:{key:'daysWorked',label:'Days Worked',format:'number',dir:0,formula:'Σ worked_day_flag',fields:'worked_day_flag',description:'Zero-activity days are excluded from per-day averages.'},
+ jobsPerTech:{key:'jobsPerTech',label:'Jobs per Technician',format:'number',dir:1,formula:'Σ completed jobs ÷ active technicians',fields:'completed_jobs_count, technician_id, worked_day_flag',description:''},
+ revPerTech:{key:'revPerTech',label:'Revenue per Technician',format:'currency',dir:1,formula:'Σ revenue ÷ active technicians',fields:'revenue_amount, technician_id, worked_day_flag',description:''},
+ revenuePerDay:{key:'revenuePerDay',label:'Revenue / Day',format:'currency',dir:1,formula:'Σ revenue ÷ Σ worked_day_flag',fields:'revenue_amount, worked_day_flag',description:'Uses days worked, not calendar days.'},
+ jobsPerDay:{key:'jobsPerDay',label:'Jobs / Day',format:'number',dir:1,formula:'Σ completed jobs ÷ Σ worked_day_flag',fields:'completed_jobs_count, worked_day_flag',description:'Uses days worked, not calendar days.'},
+ invoicedHours:{key:'invoicedHours',label:'Invoiced Hours',format:'hours',dir:1,formula:'Σ invoiced_minutes ÷ 60',fields:'invoiced_minutes',description:''},
+ utilization:{key:'utilization',label:'Technician Utilization',format:'percent',dir:1,formula:'Invoiced Hours ÷ allocated clocked hours',fields:'invoiced_minutes, Hours',description:'Labor coverage required.',requiresLabor:true},
+ clockedHours:{key:'clockedHours',label:'Clocked Hours',format:'hours',dir:0,formula:'Σ allocated Hours',fields:'Hours, worked_day_flag',description:'Weekly labor is split evenly over worked days. Volume-driven, so it is not heat-shaded.',requiresLabor:true},
+ laborCost:{key:'laborCost',label:'Labor Cost',format:'currency',dir:0,formula:'Σ allocated Total Employer Cost',fields:'Total Employer Cost, worked_day_flag',description:'Volume-driven, so it is not heat-shaded; use Labor Cost % of Revenue for the rate-adjusted view.',requiresLabor:true},
+ laborPct:{key:'laborPct',label:'Labor Cost % of Revenue',format:'percent',dir:-1,formula:'Labor Cost ÷ Revenue',fields:'Total Employer Cost, revenue_amount',description:'Labor coverage required. Lower is better.',requiresLabor:true},
+ parts:{key:'parts',label:'Parts Cost',format:'currency',dir:0,formula:'Σ parts_cost_amount',fields:'parts_cost_amount',description:'Volume-driven, so it is not heat-shaded.'},
+ grossProfit:{key:'grossProfit',label:'Simple Gross Profit',format:'currency',dir:1,formula:'Revenue − Labor Cost − Parts Cost',fields:'revenue_amount, Total Employer Cost, parts_cost_amount',description:'Labor coverage required.',requiresLabor:true},
+ grossMargin:{key:'grossMargin',label:'Simple Gross Margin',format:'percent',dir:1,formula:'Simple Gross Profit ÷ Revenue',fields:'revenue_amount, Total Employer Cost, parts_cost_amount',description:'Labor coverage required.',requiresLabor:true},
+ grossPerJob:{key:'grossPerJob',label:'Simple Gross Profit / Job',format:'currency',dir:1,formula:'Simple Gross Profit ÷ Σ completed_jobs_count',fields:'revenue_amount, Total Employer Cost, parts_cost_amount, completed_jobs_count',description:'Labor coverage required.',requiresLabor:true},
+ grossPerTech:{key:'grossPerTech',label:'Simple Gross Profit per Technician',format:'currency',dir:1,formula:'Simple Gross Profit ÷ Active Technicians',fields:'revenue_amount, Total Employer Cost, parts_cost_amount, technician_id',description:'Labor coverage required.',requiresLabor:true}
 };
-const state={ops:[],labor:[],allocated:[],market:'All Markets',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},customStart:'',customEnd:'',trendMetric:'revenue',granularity:'daily',overlay:[],cache:new Map(),detail:null};let trendChart;
-const n=x=>Number(x)||0, day=r=>String(r.day).slice(0,10), week=r=>String(r.week).slice(0,10), fmtDate=s=>new Date(s+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const TECH_COLS=['market','daysWorked','revenue','revenuePerDay','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
+const PRESETS={
+ all:{label:'All metrics',cols:TECH_COLS.slice()},
+ kpi:{label:'Performance / KPI',cols:['market','revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate']},
+ efficiency:{label:'Efficiency',cols:['market','clockedHours','invoicedHours','utilization','laborCost','laborPct']},
+ profit:{label:'Profitability',cols:['market','revenue','laborCost','parts','grossProfit','grossMargin','grossPerJob']}
+};
+const CMP_COLS=['revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
+const SERIES=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
+const RANGES=[['period','Selected period'],['l30','Last 30 days'],['l90','Last 90 days'],['l180','Last 6 months'],['ytd','Year to date'],['all','All data'],['custom','Custom']];
+const GRAINS=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+const state={ops:[],labor:[],allocated:[],allocIndex:new Map,market:'All Markets',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
+ trendMetric:'revenue',granularity:'daily',range:{mode:'period',start:'',end:''},trendLabels:true,
+ heat:{tech:true,market:true,compare:true},techPreset:'all',techCols:PRESETS.all.cols.slice(),colMenu:false,
+ cmpMode:'tech',cmpTechs:[],cmpMarkets:[],cmpMetric:'avgTicket',cmpLabels:false,cmpDelta:false,cmpColors:{},cmpSeeded:false,
+ cache:new Map(),detail:null};
+let trendChart,cmpChart;
+const n=x=>Number(x)||0,day=r=>String(r.day).slice(0,10),week=r=>String(r.week).slice(0,10);
+const fmtDate=s=>new Date(s+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const fmtDateY=s=>new Date(s+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function num(v,f){if(v==null||Number.isNaN(v))return '—';if(f==='currency')return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Math.abs(v)>=1000?0:1}).format(v);if(f==='percent')return (v*100).toFixed(1)+'%';if(f==='hours')return v.toFixed(1)+'h';return new Intl.NumberFormat('en-US',{maximumFractionDigits:1}).format(v)}
+function numShort(v,f){if(v==null||!Number.isFinite(v))return '';if(f==='currency'){let a=Math.abs(v);return a>=10000?(v<0?'-$':'$')+(Math.abs(v)/1000).toFixed(1)+'k':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v)}if(f==='percent')return (v*100).toFixed(0)+'%';if(f==='hours')return v.toFixed(0)+'h';return new Intl.NumberFormat('en-US',{maximumFractionDigits:Math.abs(v)<10?1:0}).format(v)}
+function shiftDays(iso,d){let x=new Date(iso+'T12:00:00');x.setDate(x.getDate()+d);return x.toISOString().slice(0,10)}
+function spanDays(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5)+1}
+
+/* ---------- period + range ---------- */
 function periodKeys(){let keys=state.period==='day'?state.ops.map(day):state.period==='week'?state.ops.map(week):state.ops.map(day).map(x=>x.slice(0,7));return [...new Set(keys.filter(Boolean))].sort()}
 function activePeriodKey(){let keys=periodKeys();if(state.periodKey&&keys.includes(state.periodKey))return state.periodKey;if(state.period==='week'){let latestDay=state.ops.map(day).sort().at(-1),complete=keys.filter(k=>new Date(new Date(k+'T12:00:00').getTime()+6*864e5).toISOString().slice(0,10)<=latestDay);return complete.at(-1)||keys.at(-1)}return keys.at(-1)}
-function periodLabel(k){if(state.period==='month')return new Date(k+'-01T12:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'});if(state.period==='week')return 'Week of Thu '+new Date(k+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
-function dates(){let key=activePeriodKey(),matching=state.period==='month'?state.ops.filter(r=>day(r).slice(0,7)===key):state.period==='week'?state.ops.filter(r=>week(r)===key):state.ops.filter(r=>day(r)===key),available=matching.map(day).sort(),start=state.period==='month'?key+'-01':state.period==='week'?key:key,end=available.at(-1)||start;return{start,end}}
-function selectedRows(extra={}){let {start,end}=dates();return state.ops.filter(r=>day(r)>=start&&day(r)<=end&&(state.market==='All Markets'||r.market_name===state.market)&&(!state.techs.length||state.techs.includes(r.technician_id))&&(!extra.market||r.market_name===extra.market)&&(!extra.tech||r.technician_id===extra.tech))}
-function laborFor(rows){let keys=new Set(rows.map(r=>r._key));return state.allocated.filter(r=>keys.has(r._key))}
-function coverage(rows){let active=new Set(rows.filter(r=>n(r.worked_day_flag)).map(r=>r.technician_id)),have=new Set(laborFor(rows).map(r=>r.technician_id));return{active:active.size,matched:[...active].filter(x=>have.has(x)).length,complete:[...active].every(x=>have.has(x))}}
-function summarize(rows,opts={}){let sig=opts.noCache?'':JSON.stringify([rows.map(r=>r._key),opts.goal||0]);if(sig&&state.cache.has(sig))return state.cache.get(sig);let L=laborFor(rows),cov=coverage(rows),sum=(field)=>rows.reduce((a,r)=>a+n(r[field]),0),lsum=field=>L.reduce((a,r)=>a+n(r[field]),0),revenue=sum('revenue_amount'),jobs=sum('completed_jobs_count'),invoiced=sum('invoiced_jobs_count'),active=cov.active,clock=lsum('hours'),lc=lsum('cost'),parts=sum('parts_cost_amount'),allocatedAvailable=['week','month'].includes(state.period)&&cov.matched>0,laborOK=active>0&&(cov.complete||allocatedAvailable),laborTechs=new Set(L.map(r=>r.technician_id)),coveredInvoiced=rows.filter(r=>laborTechs.has(r.technician_id)).reduce((a,r)=>a+n(r.invoiced_minutes),0)/60;let workedDays=new Set(rows.filter(r=>n(r.worked_day_flag)).map(day)),daysWorked=sum('worked_day_flag');let out={revenue,jobs,avgTicket:invoiced?revenue/invoiced:null,serviceRate:jobs?sum('service_call_jobs_count')/jobs:null,activeTechs:active,jobsPerTech:active?jobs/active:null,revPerTech:active?revenue/active:null,revenuePerDay:daysWorked?revenue/daysWorked:null,jobsPerDay:daysWorked?jobs/daysWorked:null,invoicedHours:sum('invoiced_minutes')/60,parts,clockedHours:laborOK?clock:null,laborCost:laborOK?lc:null,utilization:laborOK&&clock?coveredInvoiced/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,grossProfit:laborOK?revenue-lc-parts:null,grossMargin:laborOK&&revenue?(revenue-lc-parts)/revenue:null,grossPerTech:laborOK&&active?(revenue-lc-parts)/active:null,daysWorked,coverage:cov,partialLabor:laborOK&&!cov.complete};if(opts.pace){let allMonth=state.ops.filter(r=>day(r).slice(0,7)===opts.pace.slice(0,7)&&(state.market==='All Markets'||r.market_name===state.market)),business=new Set(allMonth.filter(r=>n(r.worked_day_flag)).map(day)).size,elapsed=workedDays.size;out.revenuePace=elapsed?revenue/elapsed*business:null;out.jobsPace=elapsed?jobs/elapsed*business:null;out.goal=state.market==='All Markets'?[...new Set(state.ops.map(r=>r.market_name))].reduce((a,m)=>a+(state.goals[m+'|'+opts.pace.slice(0,7)]??goalDefault(m,opts.pace.slice(0,7))),0):(state.goals[state.market+'|'+opts.pace.slice(0,7)]??goalDefault(state.market,opts.pace.slice(0,7)));out.variance=out.goal!=null&&out.revenuePace!=null?out.revenuePace-out.goal:null}if(sig)state.cache.set(sig,out);return out}
-function allocate(){let byTW=new Map;state.ops.forEach((r,i)=>{r._key=i;let k=r.technician_id+'|'+week(r);(byTW.get(k)||byTW.set(k,[]).get(k)).push(r)});state.allocated=[];state.labor.forEach(l=>{let rs=byTW.get(l.technician_id+'|'+week(l))||[],worked=rs.filter(r=>n(r.worked_day_flag));let pool=worked.length?worked:rs;let market=pool.length?Object.entries(pool.reduce((a,r)=>(a[r.market_name]=(a[r.market_name]||0)+1,a),{})).sort((a,b)=>b[1]-a[1])[0][0]:l.market_name;pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(l.Hours)/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}));})}
-function card(key,cur,prior){let m=METRICS[key],v=cur[key],p=prior[key],delta=v!=null&&p!=null?v-p:null,cl=key==='variance'?(v>=0?'goal-pos':'goal-neg'):'';return `<div class="card" title="${m.description||m.formula}"><div class="metric">${m.label}</div><div class="value">${num(v,m.format)}</div><div class="spark-wrap"><canvas class="sparkline" data-spark="${key}" role="img" aria-label="${m.label} trend"></canvas><span class="spark-caption">Trend</span></div><div class="compare">Prior ${num(p,m.format)} · <span class="delta ${cl}">${delta==null?'—':(delta>=0?'+':'')+num(delta,m.format)}</span></div></div>`}
-function priorRows(){let d=dates(),days=Math.round((new Date(d.end)-new Date(d.start))/864e5)+1,end=new Date(new Date(d.start+'T12:00:00')-864e5).toISOString().slice(0,10),start=new Date(new Date(end+'T12:00:00')-(days-1)*864e5).toISOString().slice(0,10);return state.ops.filter(r=>day(r)>=start&&day(r)<=end&&(state.market==='All Markets'||r.market_name===state.market)&&(!state.techs.length||state.techs.includes(r.technician_id)))}
-function controls(){let markets=[...new Set(state.ops.map(r=>r.market_name))].sort(),techOptions=state.ops.filter(r=>state.market==='All Markets'||r.market_name===state.market).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),cov=coverage(selectedRows()),range=dates(),selectedKey=activePeriodKey(),keys=periodKeys().reverse(),periodNote=state.period==='week'?`<div class="notice small"><strong>Weekly labor uses the native weekly feed.</strong> ${cov.matched}/${cov.active} active technicians have matching labor for this selection.${cov.complete?' Coverage is complete.':' Uncovered labor is excluded, so Labor Cost may be understated and Simple Gross Profit and Margin may be overstated.'}</div>`:state.period==='month'?`<div class="notice small"><strong>Monthly labor is estimated from weekly payroll.</strong> Each technician's weekly hours and employer cost are split evenly across their worked days in that Thursday-start week, then only days inside this month are included. ${cov.matched}/${cov.active} active technicians have matching labor.${cov.complete?' Coverage is complete.':' Uncovered labor is excluded, so Labor Cost may be understated and Simple Gross Profit and Margin may be overstated.'}</div>`:'';return `<div class="top"><div><h1 class="title">NuBrakes Operations Manager Dashboard</h1><p class="subtitle">${fmtDate(range.start)}${range.start===range.end?'':' – '+fmtDate(range.end)} · Market performance, technician coaching, and auditable margin</p></div><div class="status-row"><span class="badge live"><i class="badge-dot"></i>Live Data</span><span class="coverage">Labor coverage: ${cov.matched}/${cov.active} active techs</span></div></div><div class="toolbar"><label class="field">View by<select class="select" id="period"><option value="month" ${state.period==='month'?'selected':''}>Month</option><option value="week" ${state.period==='week'?'selected':''}>Week</option><option value="day" ${state.period==='day'?'selected':''}>Day</option></select></label><label class="field">Select ${state.period}<select class="select" id="periodKey">${keys.map(k=>`<option value="${k}" ${k===selectedKey?'selected':''}>${periodLabel(k)}</option>`).join('')}</select></label><label class="field">Market<select class="select" id="market"><option>All Markets</option>${markets.map(x=>`<option ${x===state.market?'selected':''}>${x}</option>`).join('')}</select></label><label class="field">Technicians<select class="select" id="techs" multiple size="1">${[...techOptions].map(([id,name])=>`<option value="${id}" ${state.techs.includes(id)?'selected':''}>${name}</option>`).join('')}</select></label></div>${periodNote}<nav class="tabs">${[['market','Market Performance'],['tech','Technician Performance'],['trend','Trend Analysis'],['goals','Goals'],['definitions','Definitions']].map(([k,l])=>`<button class="${state.tab===k?'active':''}" data-tab="${k}">${l}</button>`).join('')}<button id="quality">Data Quality</button></nav>`}
-function marketView(){let rows=selectedRows(),pace=state.period==='month'?{pace:dates().end}:{},cur=summarize(rows,pace),prior=summarize(priorRows(),{...pace,noCache:true}),groups=[['Revenue',state.period==='month'?['revenue','revenuePace','goal','variance']:['revenue']],['Jobs',state.period==='month'?['jobs','jobsPace']:['jobs']],['Ticket',['avgTicket','serviceRate']],['Productivity',['jobsPerTech','revPerTech','utilization']],['Labor',['clockedHours','laborCost','laborPct']],['Profitability',['grossProfit','grossMargin','grossPerTech']]];let markets=[...new Set(state.ops.map(r=>r.market_name))].sort();let cols=['revenue','jobs','avgTicket','serviceRate','clockedHours','laborCost','laborPct','grossProfit','grossMargin'];return groups.map(([n,ks])=>`<div class="kpi-group"><div class="group-name">${n}</div><div class="cards">${ks.map(k=>card(k,cur,prior)).join('')}</div></div>`).join('')+`<section class="section"><h2>Market comparison</h2><p class="small">Click a market to open its technician performance. Sort columns in the technician view.</p><div class="scroll"><table><thead><tr><th>Market</th>${cols.map(k=>`<th>${METRICS[k].label}</th>`).join('')}</tr></thead><tbody>${markets.map(m=>{let s=summarize(selectedRows({market:m}));return `<tr><td class="link" data-market="${m}">${m}</td>${cols.map(k=>`<td>${num(s[k],METRICS[k].format)}</td>`).join('')}</tr>`}).join('')}</tbody></table></div></section>`}
-function median(a){let x=a.filter(v=>v!=null).sort((a,b)=>a-b);return x.length?x[Math.floor(x.length/2)]:null}function techView(){let rows=selectedRows(),by=new Map;rows.forEach(r=>{let a=by.get(r.technician_id)||[];a.push(r);by.set(r.technician_id,a)});let metrics=['revenue','jobs','avgTicket','serviceRate','clockedHours','invoicedHours','utilization','grossProfit','grossMargin'];let data=[...by].map(([id,rs])=>({id,name:rs[0].technician_name,market:rs[0].market_name,...summarize(rs)}));let cols=[['name','Technician'],['market','Market'],['daysWorked','Days Worked'],['revenue','Revenue'],['revenuePerDay','Revenue / Day'],['jobs','Jobs Completed'],['jobsPerDay','Jobs / Day'],...metrics.slice(2).map(k=>[k,METRICS[k].label])];let med={};metrics.forEach(k=>med[k]=median(data.filter(x=>x.market===state.market||state.market==='All Markets').map(x=>x[k])));let sk=state.sort.key;data.sort((a,b)=>typeof a[sk]==='string'?state.sort.dir*a[sk].localeCompare(b[sk]):state.sort.dir*((a[sk]??-Infinity)-(b[sk]??-Infinity)));return `<section class="section"><h2>Technician performance</h2><p class="small">Thin markers compare each technician with their market median. Click a name for trend and market rank.</p><div class="scroll"><table><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}">${l} ${state.sort.key===k?(state.sort.dir===1?'↑':'↓'):'↕'}</th>`).join('')}</tr></thead><tbody>${data.map(x=>`<tr>${cols.map(([k],i)=>{let v=x[k],f=METRICS[k]?.format||'number',mark=metrics.includes(k)&&med[k]!=null&&v!=null?`<div class="median"><i style="width:${Math.min(100,Math.max(2,50+(v-med[k])/(Math.abs(med[k])||1)*50))}%"></i></div>`:'';return `<td class="${i===0?'sticky-name link':''}" ${i===0?`data-tech="${x.id}"`:''}>${k==='name'||k==='market'?v:num(v,f)}${mark}</td>`}).join('')}</tr>`).join('')}</tbody></table></div></section>`}
-function trendView(){let rows=selectedRows(),available=Object.keys(METRICS).filter(k=>!['goal','variance','revenuePace','jobsPace'].includes(k));let groups=new Map;if(state.granularity==='weekly')rows.forEach(r=>{let k=week(r);(groups.get(k)||groups.set(k,[]).get(k)).push(r)});else rows.forEach(r=>{let k=day(r);(groups.get(k)||groups.set(k,[]).get(k)).push(r)});let data=[...groups].sort().map(([k,rs])=>({label:state.granularity==='weekly'?'Week of Thu '+fmtDate(k):fmtDate(k),value:summarize(rs)[state.trendMetric]}));return `<section class="section"><div class="subbar"><label class="field">KPI<select id="trendMetric">${available.map(k=>`<option value="${k}" ${k===state.trendMetric?'selected':''}>${METRICS[k].label}</option>`).join('')}</select></label><div>${[['daily','Daily'],['weekly','Weekly'],['mtdcurve','Month-to-Date']].map(([k,l])=>`<button class="${state.granularity===k?'active':''}" data-gran="${k}">${l}</button>`).join('')}</div></div><div class="chart-wrap"><canvas id="trendChart"></canvas></div><div id="trendFallback" class="hidden"></div></section>`}
-function goalsView(){let months=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].slice(-4),markets=[...new Set(state.ops.map(r=>r.market_name))].sort();return `<section class="section"><h2>Monthly revenue goals</h2><p class="small">Defaults are trailing three-month market average revenue. Values live only in this page until you export them.</p><div class="scroll"><table class="goal-table"><thead><tr><th>Market</th>${months.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>${markets.map(m=>`<tr><td>${m}</td>${months.map(mon=>{let key=m+'|'+mon,v=state.goals[key]??goalDefault(m,mon);return `<td><input data-goal="${key}" type="number" value="${Math.round(v)}"></td>`}).join('')}</tr>`).join('')}</tbody></table></div><p><button id="exportGoals">Export goals JSON</button> <label class="chip">Import goals JSON <input id="importGoals" type="file" accept="application/json" hidden></label></p></section>`}function goalDefault(m,mon){let past=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].filter(x=>x<mon).slice(-3);let vals=past.map(x=>summarize(state.ops.filter(r=>r.market_name===m&&day(r).slice(0,7)===x),{noCache:true}).revenue);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0}
-function definitions(){return `<section class="section"><h2>Metric definitions</h2><p class="small">All dashboard calculations originate in the shared registry shown here.</p><div class="scroll"><table class="definition"><thead><tr><th>Metric</th><th>Formula</th><th>Source fields</th><th>Definition</th></tr></thead><tbody>${Object.values(METRICS).map(m=>`<tr><td>${m.label}</td><td>${m.formula}</td><td>${m.fields}</td><td>${m.description||'—'}</td></tr>`).join('')}</tbody></table></div></section>`}
-function quality(){let noLabor=[...new Map(state.ops.filter(r=>!state.labor.some(l=>l.technician_id===r.technician_id)).map(r=>[r.technician_id,{name:r.technician_name,markets:new Set()}])).values()];state.ops.filter(r=>!state.labor.some(l=>l.technician_id===r.technician_id)).forEach(r=>noLabor.find(x=>x.name===r.technician_name)?.markets.add(r.market_name));let missing=state.ops.filter(r=>String(r.normalized_actual_duration_minutes).trim()==='').length,parts=state.ops.reduce((a,r)=>a+n(r.parts_lines_missing_cost),0),bad=[];let by=new Map;state.ops.forEach(r=>{let a=by.get(r.technician_id)||[];a.push(r);by.set(r.technician_id,a)});by.forEach(rs=>{let s=summarize(rs);if(s.utilization!=null&&(s.utilization>1||s.utilization<.2))bad.push(`${rs[0].technician_name}: ${num(s.utilization,'percent')}`)});return `<section class="section"><h2>Data quality & coverage</h2><p class="warn">Parts-cost gaps can overstate gross margin.</p><ul><li><b>Operations without labor:</b> ${noLabor.map(x=>`${x.name} (${[...x.markets].join(', ')})`).join('; ')||'None'}</li><li><b>Missing normalized wrench time:</b> ${missing} daily rows (treated as null).</li><li><b>Parts lines missing cost:</b> ${parts}.</li><li><b>Weeks allocated at week level due to zero worked days:</b> ${state.allocated.filter(x=>x.fallback).length} allocations.</li><li><b>Likely utilization exceptions:</b> ${bad.join('; ')||'None'}.</li></ul><p class="small">Labor is evenly allocated across worked days. If none exist in a labor week, it remains attributed to the technician's most frequent market rather than being dropped.</p></section>`}
-function detail(id){let rs=selectedRows({tech:id}),s=summarize(rs),market=rs[0]?.market_name,all=[...new Map(selectedRows({market}).map(r=>[r.technician_id,selectedRows({tech:r.technician_id})])).values()].map(x=>summarize(x)),rank=k=>{let vals=all.map(x=>x[k]).filter(v=>v!=null).sort((a,b)=>b-a);return s[k]==null?'—':(vals.findIndex(v=>v===s[k])+1)+' / '+vals.length};return `<aside class="detail"><button class="close" id="close">Close</button><div class="group-name">${market}</div><h2>${rs[0]?.technician_name||'Technician'}</h2><p class="small">Daily metrics for the active period; rank is within market.</p><table>${['revenue','jobs','avgTicket','serviceRate','utilization','grossProfit','grossMargin'].map(k=>`<tr><td>${METRICS[k].label}</td><td>${num(s[k],METRICS[k].format)}</td><td class="small">Rank ${rank(k)}</td></tr>`).join('')}</table></aside>`}
-function wire(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;render()});document.querySelector('#period').onchange=e=>{state.period=e.target.value;state.periodKey='';state.cache.clear();render()};document.querySelector('#periodKey').onchange=e=>{state.periodKey=e.target.value;state.cache.clear();render()};document.querySelector('#market').onchange=e=>{state.market=e.target.value;state.cache.clear();render()};document.querySelector('#techs').onchange=e=>{state.techs=[...e.target.selectedOptions].map(o=>o.value);state.cache.clear();render()};document.querySelectorAll('[data-market]').forEach(x=>x.onclick=()=>{state.market=x.dataset.market;state.tab='tech';render()});document.querySelectorAll('[data-tech]').forEach(x=>x.onclick=()=>{state.detail=x.dataset.tech;render()});document.querySelectorAll('[data-sort]').forEach(x=>x.onclick=()=>{let k=x.dataset.sort;state.sort={key:k,dir:state.sort.key===k?-state.sort.dir:-1};render()});document.querySelectorAll('[data-gran]').forEach(x=>x.onclick=()=>{state.granularity=x.dataset.gran;render()});let tm=document.querySelector('#trendMetric');if(tm)tm.onchange=e=>{state.trendMetric=e.target.value;render()};document.querySelector('#quality').onclick=()=>{let q=document.querySelector('#qualityPanel');q.classList.toggle('hidden')};document.querySelectorAll('[data-goal]').forEach(x=>x.onchange=e=>{state.goals[e.target.dataset.goal]=n(e.target.value);state.cache.clear()});let ex=document.querySelector('#exportGoals');if(ex)ex.onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state.goals,null,2)],{type:'application/json'}));a.download='nubrakes-goals.json';a.click()};let im=document.querySelector('#importGoals');if(im)im.onchange=e=>{let f=e.target.files[0];if(f){let r=new FileReader;r.onload=()=>{try{state.goals=JSON.parse(r.result);state.cache.clear();render()}catch{alert('Invalid goals JSON')}};r.readAsText(f)}};let close=document.querySelector('#close');if(close)close.onclick=()=>{state.detail=null;render()}}
-function sparkSeries(key){let endKey=activePeriodKey(),keys=periodKeys().filter(k=>k<=endKey).slice(-8),base=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&(!state.techs.length||state.techs.includes(r.technician_id))),bucket=r=>state.period==='day'?day(r):state.period==='week'?week(r):day(r).slice(0,7);return{keys,values:keys.map(k=>{let rs=base.filter(r=>bucket(r)===k),last=rs.map(day).sort().at(-1),opts=state.period==='month'&&last?{pace:last,noCache:true}:{noCache:true};return summarize(rs,opts)[key]})}}
-function drawSparklines(){if(state.tab!=='market')return;document.querySelectorAll('.sparkline').forEach(canvas=>{let key=canvas.dataset.spark,{keys,values}=sparkSeries(key),finite=values.filter(Number.isFinite),ratio=window.devicePixelRatio||1,w=Math.max(100,canvas.clientWidth),h=32;canvas.width=w*ratio;canvas.height=h*ratio;let ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.clearRect(0,0,w,h);ctx.strokeStyle='#eef2f7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,h-4);ctx.lineTo(w,h-4);ctx.stroke();if(!finite.length){ctx.fillStyle='#9ca3af';ctx.font='10px system-ui';ctx.fillText('No trend data',2,19);return}let min=Math.min(...finite),max=Math.max(...finite),spread=max-min||Math.abs(max)||1,x=i=>keys.length===1?w/2:i*(w-4)/(keys.length-1)+2,y=v=>h-5-(v-min)/spread*(h-10),color=key==='variance'?(finite.at(-1)>=0?'#10b981':'#f43f5e'):'#6366f1';ctx.strokeStyle=color;ctx.lineWidth=1.75;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();let drawing=false;values.forEach((v,i)=>{if(!Number.isFinite(v)){drawing=false;return}if(!drawing){ctx.moveTo(x(i),y(v));drawing=true}else ctx.lineTo(x(i),y(v))});ctx.stroke();let lastIndex=values.findLastIndex(Number.isFinite);if(lastIndex>=0){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x(lastIndex),y(values[lastIndex]),2.4,0,Math.PI*2);ctx.fill()}canvas.title=`${METRICS[key].label}: ${keys[0]} to ${keys.at(-1)}`})}
-function drawTrend(){if(state.tab!=='trend')return;let rows=selectedRows(),groups=new Map,weekly=state.granularity==='weekly';rows.forEach(r=>{let k=weekly?week(r):day(r);(groups.get(k)||groups.set(k,[]).get(k)).push(r)});let labels=[...groups.keys()].sort(),vals=labels.map(k=>summarize(groups.get(k))[state.trendMetric]);if(!window.Chart){document.querySelector('#trendFallback').classList.remove('hidden');document.querySelector('#trendFallback').innerHTML=`<div class="scroll"><table class="fallback"><tr><th>Period</th><th>${METRICS[state.trendMetric].label}</th></tr>${labels.map((x,i)=>`<tr><td>${weekly?'Week of Thu ':''}${fmtDate(x)}</td><td>${num(vals[i],METRICS[state.trendMetric].format)}</td></tr>`).join('')}</table></div>`;return}trendChart?.destroy();trendChart=new Chart(document.querySelector('#trendChart'),{type:weekly?'bar':'line',data:{labels:labels.map(x=>weekly?'Thu '+fmtDate(x):fmtDate(x)),datasets:[{label:METRICS[state.trendMetric].label,data:vals,borderColor:'#6366f1',backgroundColor:'#6366f155',fill:false,tension:.25}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>num(v,METRICS[state.trendMetric].format)}}}}})}
-function render(){state.cache.clear();let body=state.tab==='market'?marketView():state.tab==='tech'?techView():state.tab==='trend'?trendView():state.tab==='goals'?goalsView():definitions();document.querySelector('#app').innerHTML=`<div class="app-inner">${controls()}<div id="qualityPanel" class="hidden">${quality()}</div>${body}</div>`+(state.detail?detail(state.detail):'');wire();drawSparklines();drawTrend()}
-async function load(){try{let [ops,lab]=await Promise.all([fetch(OPS_URL).then(r=>r.ok?r.json():Promise.reject(OPS_URL)),fetch(LABOR_URL).then(r=>r.ok?r.json():fetch(LABOR_FALLBACK).then(x=>x.ok?x.json():Promise.reject(LABOR_URL+' / fallback')))]);state.ops=ops;state.labor=lab;allocate();render()}catch(e){document.querySelector('#app').innerHTML=`<div class="notice"><h2>Unable to load dashboard data</h2><p>Failed feed: ${String(e)}. Check your connection and retry. Operations URL: ${OPS_URL}; Labor URL: ${LABOR_URL}</p><button onclick="location.reload()">Retry</button></div>`}}load();
-</script></body></html>
+function periodLabel(k){if(state.period==='month')return new Date(k+'-01T12:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'});if(state.period==='week')return 'Week of Thu '+fmtDateY(k);return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+function dates(){let key=activePeriodKey(),matching=state.period==='month'?state.ops.filter(r=>day(r).slice(0,7)===key):state.period==='week'?state.ops.filter(r=>week(r)===key):state.ops.filter(r=>day(r)===key),available=matching.map(day).sort(),start=state.period==='month'?key+'-01':key,end=available.at(-1)||start;return{start,end}}
+function bounds(){let d=state.ops.map(day).sort();return{min:d[0],max:d.at(-1)}}
+function rangeDates(){let{min,max}=bounds(),m=state.range.mode;
+ if(m==='period')return dates();
+ if(m==='all')return{start:min,end:max};
+ if(m==='ytd')return{start:max.slice(0,4)+'-01-01'<min?min:max.slice(0,4)+'-01-01',end:max};
+ if(m==='custom'){let s=state.range.start||min,e=state.range.end||max;if(s>e){let t=s;s=e;e=t}return{start:s<min?min:s,end:e>max?max:e}}
+ let back={l30:30,l90:90,l180:183}[m]||30,s=shiftDays(max,-(back-1));return{start:s<min?min:s,end:max}}
+function rangeLabel(){let r=rangeDates();return fmtDateY(r.start)+' – '+fmtDateY(r.end)+' ('+spanDays(r.start,r.end)+' days)'}
+function rangeAlloc(){let r=rangeDates();return spanDays(r.start,r.end)>=7||['week','month'].includes(state.period)}
+function filterRows(start,end,o={}){let mk=o.market||state.market;return state.ops.filter(r=>{let d=day(r);if(d<start||d>end)return false;if(mk!=='All Markets'&&r.market_name!==mk)return false;if(o.tech)return r.technician_id===o.tech;if(!o.ignoreTechs&&state.techs.length&&!state.techs.includes(r.technician_id))return false;return true})}
+function selectedRows(extra={}){let{start,end}=dates();return filterRows(start,end,extra)}
+function priorRows(){let d=dates(),len=spanDays(d.start,d.end),end=shiftDays(d.start,-1),start=shiftDays(end,-(len-1));return filterRows(start,end)}
+
+/* ---------- metric engine ---------- */
+function laborFor(rows){let idx=state.allocIndex,out=[];for(let i=0;i<rows.length;i++){let a=idx.get(rows[i]._key);if(a)for(let j=0;j<a.length;j++)out.push(a[j])}return out}
+function coverage(rows){let active=new Set(rows.filter(r=>n(r.worked_day_flag)).map(r=>r.technician_id)),have=new Set(laborFor(rows).map(r=>r.technician_id));return{active:active.size,matched:[...active].filter(x=>have.has(x)).length,complete:active.size>0&&[...active].every(x=>have.has(x))}}
+function summarize(rows,opts={}){
+ let alloc=opts.alloc===undefined?['week','month'].includes(state.period):opts.alloc;
+ let sig=opts.noCache?'':JSON.stringify([rows.map(r=>r._key),opts.goal||0,alloc,opts.pace||'']);
+ if(sig&&state.cache.has(sig))return state.cache.get(sig);
+ let L=laborFor(rows),cov=coverage(rows),sum=f=>rows.reduce((a,r)=>a+n(r[f]),0),lsum=f=>L.reduce((a,r)=>a+n(r[f]),0),
+ revenue=sum('revenue_amount'),booked=sum('booked_revenue_amount'),jobs=sum('completed_jobs_count'),invoiced=sum('invoiced_jobs_count'),
+ rotorElig=sum('rotor_eligible_jobs_count'),rotorAtt=sum('rotor_attached_jobs_count'),
+ active=cov.active,clock=lsum('hours'),lc=lsum('cost'),parts=sum('parts_cost_amount'),
+ allocatedAvailable=alloc&&cov.matched>0,laborOK=active>0&&(cov.complete||allocatedAvailable),
+ laborTechs=new Set(L.map(r=>r.technician_id)),
+ coveredInvoiced=rows.filter(r=>laborTechs.has(r.technician_id)).reduce((a,r)=>a+n(r.invoiced_minutes),0)/60;
+ let workedDays=new Set(rows.filter(r=>n(r.worked_day_flag)).map(day)),daysWorked=sum('worked_day_flag');
+ let gp=laborOK?revenue-lc-parts:null;
+ let out={revenue,jobs,avgTicket:invoiced?revenue/invoiced:null,ticketCompletion:booked?revenue/booked:null,rotorAttach:rotorElig?rotorAtt/rotorElig:null,
+  serviceRate:jobs?sum('service_call_jobs_count')/jobs:null,activeTechs:active,jobsPerTech:active?jobs/active:null,revPerTech:active?revenue/active:null,
+  revenuePerDay:daysWorked?revenue/daysWorked:null,jobsPerDay:daysWorked?jobs/daysWorked:null,invoicedHours:sum('invoiced_minutes')/60,parts,
+  clockedHours:laborOK?clock:null,laborCost:laborOK?lc:null,utilization:laborOK&&clock?coveredInvoiced/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,
+  grossProfit:gp,grossMargin:laborOK&&revenue?gp/revenue:null,grossPerJob:laborOK&&jobs?gp/jobs:null,grossPerTech:laborOK&&active?gp/active:null,
+  daysWorked,coverage:cov,partialLabor:laborOK&&!cov.complete};
+ if(opts.pace){let mon=opts.pace.slice(0,7),allMonth=state.ops.filter(r=>day(r).slice(0,7)===mon&&(state.market==='All Markets'||r.market_name===state.market)),
+  business=new Set(allMonth.filter(r=>n(r.worked_day_flag)).map(day)).size,elapsed=workedDays.size;
+  out.revenuePace=elapsed?revenue/elapsed*business:null;out.jobsPace=elapsed?jobs/elapsed*business:null;
+  out.goal=state.market==='All Markets'?[...new Set(state.ops.map(r=>r.market_name))].reduce((a,m)=>a+(state.goals[m+'|'+mon]??goalDefault(m,mon)),0):(state.goals[state.market+'|'+mon]??goalDefault(state.market,mon));
+  out.variance=out.goal!=null&&out.revenuePace!=null?out.revenuePace-out.goal:null}
+ if(sig)state.cache.set(sig,out);return out}
+function allocate(){let byTW=new Map;state.ops.forEach((r,i)=>{r._key=i;let k=r.technician_id+'|'+week(r);(byTW.get(k)||byTW.set(k,[]).get(k)).push(r)});
+ state.allocated=[];state.labor.forEach(l=>{let rs=byTW.get(l.technician_id+'|'+week(l))||[],worked=rs.filter(r=>n(r.worked_day_flag)),pool=worked.length?worked:rs;
+  let market=pool.length?Object.entries(pool.reduce((a,r)=>(a[r.market_name]=(a[r.market_name]||0)+1,a),{})).sort((a,b)=>b[1]-a[1])[0][0]:l.market_name;
+  pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(l.Hours)/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}))});
+ state.allocIndex=new Map;state.allocated.forEach(a=>{(state.allocIndex.get(a._key)||state.allocIndex.set(a._key,[]).get(a._key)).push(a)})}
+function goalDefault(m,mon){let past=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].filter(x=>x<mon).slice(-3);
+ let vals=past.map(x=>summarize(state.ops.filter(r=>r.market_name===m&&day(r).slice(0,7)===x),{noCache:true,alloc:true}).revenue);
+ return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0}
+
+/* ---------- heat map ---------- */
+function heatBg(v,vals,dir){
+ if(!dir||v==null||!Number.isFinite(v))return '';
+ let f=vals.filter(x=>Number.isFinite(x));
+ if(f.length<2)return '';
+ let lo=Math.min(...f),hi=Math.max(...f);if(hi===lo)return '';
+ let below=f.filter(x=>x<v).length,equal=f.filter(x=>x===v).length,pct=(below+equal/2)/f.length,t=(pct-.5)*2*dir,step=Math.round(Math.abs(t)*4);
+ if(!step)return '';
+ return 'background:var(--heat-'+(t>0?'g':'r')+step+')'}
+function heatLegend(){return '<span class="legend"><span>Weaker</span><i style="background:var(--heat-r4)"></i><i style="background:var(--heat-r2)"></i><i style="background:#f8fafc"></i><i style="background:var(--heat-g2)"></i><i style="background:var(--heat-g4)"></i><span>Stronger</span></span>'}
+function toggleBtn(id,on,label){return '<button class="toggle" data-toggle="'+id+'" aria-pressed="'+(!!on)+'"><i class="dot"></i>'+label+'</button>'}
+
+/* ---------- shell ---------- */
+function controls(){
+ let markets=[...new Set(state.ops.map(r=>r.market_name))].sort(),
+ techOptions=state.ops.filter(r=>state.market==='All Markets'||r.market_name===state.market).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),
+ cov=coverage(selectedRows()),range=dates(),selectedKey=activePeriodKey(),keys=periodKeys().reverse(),
+ note=cov.matched+'/'+cov.active+' active technicians have matching labor'+(cov.complete?'. Coverage is complete.':'. Uncovered labor is excluded, so Labor Cost may be understated and Simple Gross Profit and Margin may be overstated.'),
+ periodNote=state.period==='week'?'<div class="notice small"><strong>Weekly labor uses the native weekly feed.</strong> '+note+'</div>':state.period==='month'?'<div class="notice small"><strong>Monthly labor is estimated from weekly payroll.</strong> Each technician\'s weekly hours and employer cost are split evenly across their worked days in that Thursday-start week, then only days inside this month are included. '+note+'</div>':'';
+ return '<div class="top"><div><h1 class="title">NuBrakes Operations Manager Dashboard</h1><p class="subtitle">'+fmtDate(range.start)+(range.start===range.end?'':' – '+fmtDate(range.end))+' · Market performance, technician coaching, and auditable margin</p></div>'+
+ '<div class="status-row"><span class="badge live"><i class="badge-dot"></i>Live Data</span><span class="coverage">Labor coverage: '+cov.matched+'/'+cov.active+' active techs</span></div></div>'+
+ '<div class="toolbar"><label class="field">View by<select class="select" id="period">'+[['month','Month'],['week','Week'],['day','Day']].map(([v,l])=>'<option value="'+v+'"'+(state.period===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
+ '<label class="field">Select '+state.period+'<select class="select" id="periodKey">'+keys.map(k=>'<option value="'+k+'"'+(k===selectedKey?' selected':'')+'>'+periodLabel(k)+'</option>').join('')+'</select></label>'+
+ '<label class="field">Market<select class="select" id="market"><option>All Markets</option>'+markets.map(x=>'<option'+(x===state.market?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>'+
+ '<label class="field">Technicians<select class="select" id="techs" multiple size="1">'+[...techOptions].map(([id,name])=>'<option value="'+id+'"'+(state.techs.includes(id)?' selected':'')+'>'+esc(name)+'</option>').join('')+'</select></label>'+
+ (state.techs.length?'<button class="btn" id="clearTechs">Clear '+state.techs.length+' technician'+(state.techs.length>1?'s':'')+'</button>':'')+'</div>'+periodNote+
+ '<nav class="tabs">'+[['market','Market Performance'],['tech','Technician Performance'],['compare','Compare'],['trend','Trend Analysis'],['goals','Goals'],['definitions','Definitions']].map(([k,l])=>'<button class="'+(state.tab===k?'active':'')+'" data-tab="'+k+'">'+l+'</button>').join('')+'<button id="quality">Data Quality</button></nav>'}
+
+function card(key,cur,prior){let m=METRICS[key],v=cur[key],p=prior[key],delta=v!=null&&p!=null?v-p:null,cl=key==='variance'?(v>=0?'goal-pos':'goal-neg'):'';
+ return '<div class="card" title="'+esc(m.description||m.formula)+'"><div class="metric">'+m.label+'</div><div class="value">'+num(v,m.format)+'</div>'+
+ '<div class="spark-wrap"><canvas class="sparkline" data-spark="'+key+'" role="img" aria-label="'+m.label+' trend"></canvas><span class="spark-caption">Trend</span></div>'+
+ '<div class="compare">Prior '+num(p,m.format)+' · <span class="delta '+cl+'">'+(delta==null?'—':(delta>=0?'+':'')+num(delta,m.format))+'</span></div></div>'}
+
+/* ---------- market tab ---------- */
+function marketView(){
+ let rows=selectedRows(),pace=state.period==='month'?{pace:dates().end}:{},cur=summarize(rows,pace),prior=summarize(priorRows(),Object.assign({},pace,{noCache:true})),
+ groups=[['Revenue',state.period==='month'?['revenue','revenuePace','goal','variance']:['revenue']],['Jobs',state.period==='month'?['jobs','jobsPace']:['jobs']],
+  ['Ticket',['avgTicket','ticketCompletion','rotorAttach','serviceRate']],['Productivity',['jobsPerTech','revPerTech','utilization']],
+  ['Labor',['clockedHours','laborCost','laborPct']],['Profitability',['grossProfit','grossMargin','grossPerTech']]],
+ markets=[...new Set(state.ops.map(r=>r.market_name))].sort(),
+ cols=['revenue','jobs','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','laborCost','laborPct','grossProfit','grossMargin'],
+ data=markets.map(m=>Object.assign({market:m},summarize(selectedRows({market:m,ignoreTechs:true})))),
+ heat={};cols.forEach(k=>{if(METRICS[k].dir)heat[k]=data.map(x=>x[k])});
+ return groups.map(([nm,ks])=>'<div class="kpi-group"><div class="group-name">'+nm+'</div><div class="cards">'+ks.map(k=>card(k,cur,prior)).join('')+'</div></div>').join('')+
+ '<section class="section"><div class="sec-head"><div><h2>Market comparison</h2><p class="small">Every market for the selected period, regardless of the market and technician filters above. Click a market to open its technician performance.</p></div>'+
+ '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+(state.heat.market?heatLegend():'')+toggleBtn('market',state.heat.market,'Heat map')+'</div></div>'+
+ '<div class="scroll"><table><thead><tr><th class="pin txt">Market</th>'+cols.map(k=>'<th>'+METRICS[k].label+'</th>').join('')+'</tr></thead><tbody>'+
+ data.map(x=>'<tr><td class="pin link" data-market="'+esc(x.market)+'">'+esc(x.market)+'</td>'+cols.map(k=>{let bg=state.heat.market?heatBg(x[k],heat[k],METRICS[k].dir):'';return '<td class="'+(bg?'heat':'')+'" style="'+bg+'">'+num(x[k],METRICS[k].format)+'</td>'}).join('')+'</tr>').join('')+
+ '</tbody></table></div></section>'}
+
+/* ---------- technician tab ---------- */
+function techView(){
+ let rows=selectedRows(),by=new Map;rows.forEach(r=>{let a=by.get(r.technician_id)||[];a.push(r);by.set(r.technician_id,a)});
+ let data=[...by].map(([id,rs])=>Object.assign({id,name:rs[0].technician_name,market:rs[0].market_name},summarize(rs)));
+ let visible=TECH_COLS.filter(k=>state.techCols.includes(k)),cols=[['name','Technician']].concat(visible.map(k=>[k,k==='market'?'Market':METRICS[k].label]));
+ let sk=state.sort.key;if(sk!=='name'&&!visible.includes(sk)){sk='name';state.sort={key:'name',dir:1}}
+ data.sort((a,b)=>typeof a[sk]==='string'?state.sort.dir*String(a[sk]).localeCompare(String(b[sk])):state.sort.dir*((a[sk]??-Infinity)-(b[sk]??-Infinity)));
+ let heat={};visible.forEach(k=>{if(METRICS[k]&&METRICS[k].dir)heat[k]=data.map(x=>x[k])});
+ let menu='<details class="picker"'+(state.colMenu?' open':'')+' id="colMenu"><summary>Columns · '+visible.length+' of '+TECH_COLS.length+'</summary><div class="menu">'+
+  TECH_COLS.map(k=>'<label><input type="checkbox" data-col="'+k+'"'+(state.techCols.includes(k)?' checked':'')+'>'+(k==='market'?'Market':METRICS[k].label)+'</label>').join('')+
+  '<div style="display:flex;gap:6px;margin-top:8px"><button class="btn" data-preset="all" style="flex:1">Select all</button><button class="btn" data-cols="none" style="flex:1">Clear</button></div></div></details>';
+ return '<section class="section"><div class="sec-head"><div><h2>Technician performance</h2><p class="small">The technician column stays put as you scroll sideways. Heat map ranks each column across the technicians shown — green is stronger, red is weaker, and volume-driven columns (Days Worked, Clocked Hours, Labor Cost, Parts Cost) are left unshaded. Click a name for trend and market rank.</p></div></div>'+
+ '<div class="rangebar"><div class="seg">'+Object.entries(PRESETS).map(([k,p])=>'<button class="'+(state.techPreset===k?'active':'')+'" data-preset="'+k+'">'+p.label+'</button>').join('')+(state.techPreset==='custom'?'<button class="active">Custom</button>':'')+'</div>'+
+ menu+toggleBtn('tech',state.heat.tech,'Heat map')+(state.heat.tech?heatLegend():'')+'</div>'+
+ '<div class="scroll"><table><thead><tr>'+cols.map(([k,l],i)=>'<th data-sort="'+k+'" class="'+(i===0?'pin txt':k==='market'?'txt':'')+'">'+l+' '+(state.sort.key===k?(state.sort.dir===1?'↑':'↓'):'↕')+'</th>').join('')+'</tr></thead><tbody>'+
+ data.map(x=>'<tr>'+cols.map(([k],i)=>{
+   if(i===0)return '<td class="pin link" data-tech="'+x.id+'">'+esc(x.name)+'</td>';
+   if(k==='market')return '<td class="txt">'+esc(x.market)+'</td>';
+   let bg=state.heat.tech?heatBg(x[k],heat[k],METRICS[k].dir):'';
+   return '<td class="'+(bg?'heat':'')+'" style="'+bg+'">'+num(x[k],METRICS[k].format)+'</td>'}).join('')+'</tr>').join('')+
+ '</tbody></table></div>'+(data.length?'':'<p class="small">No technician activity in this selection.</p>')+'</section>'}
+
+/* ---------- compare tab ---------- */
+function techNameOf(id){let r=state.ops.find(x=>x.technician_id===id);return r?r.technician_name:id}
+function cmpColor(id){if(state.cmpColors[id])return state.cmpColors[id];let used=new Set(Object.values(state.cmpColors));let c=SERIES.find(x=>!used.has(x))||SERIES[Object.keys(state.cmpColors).length%SERIES.length];state.cmpColors[id]=c;return c}
+function cmpSelected(){return state.cmpMode==='market'?state.cmpMarkets:state.cmpTechs}
+function seedCompare(){
+ if(state.cmpSeeded)return;state.cmpSeeded=true;
+ let{start,end}=rangeDates();
+ if(state.techs.length){state.cmpTechs=state.techs.slice(0,6)}
+ else{let by=new Map;filterRows(start,end,{ignoreTechs:true}).forEach(r=>{by.set(r.technician_id,(by.get(r.technician_id)||0)+n(r.revenue_amount))});
+  state.cmpTechs=[...by].sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0])}
+ let mk=[...new Set(state.ops.map(r=>r.market_name))].sort();
+ state.cmpMarkets=state.market!=='All Markets'?[state.market].concat(mk.filter(m=>m!==state.market).slice(0,3)):mk.slice(0,4);
+ cmpSelected().forEach(cmpColor)}
+function cmpEntities(){let{start,end}=rangeDates();
+ return state.cmpMode==='market'
+  ?state.cmpMarkets.map(m=>({id:m,label:m,rows:filterRows(start,end,{market:m,ignoreTechs:true})}))
+  :state.cmpTechs.map(id=>({id,label:techNameOf(id),rows:filterRows(start,end,{tech:id,market:'All Markets'})}))}
+function compareView(){
+ seedCompare();
+ let ents=cmpEntities(),alloc=rangeAlloc(),
+ rowsOf=ents.map(e=>Object.assign({id:e.id,label:e.label},summarize(e.rows,{alloc}))),
+ allRows=ents.reduce((a,e)=>a.concat(e.rows),[]),total=summarize(allRows,{alloc,noCache:true}),
+ avg={};CMP_COLS.forEach(k=>{let f=rowsOf.map(x=>x[k]).filter(v=>Number.isFinite(v));avg[k]=f.length?f.reduce((a,b)=>a+b,0)/f.length:null});
+ let heat={};CMP_COLS.forEach(k=>{if(METRICS[k].dir)heat[k]=rowsOf.map(x=>x[k])});
+ let options=state.cmpMode==='market'
+  ?[...new Set(state.ops.map(r=>r.market_name))].sort().map(m=>[m,m])
+  :[...state.ops.filter(r=>state.market==='All Markets'||r.market_name===state.market).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map())].sort((a,b)=>a[1].localeCompare(b[1]));
+ let sel=cmpSelected();
+ let chips=options.map(([id,label])=>{let on=sel.includes(id);return '<button class="pill" data-cmp="'+esc(id)+'" aria-pressed="'+on+'"><i class="dot" style="'+(on?'background:'+cmpColor(id):'')+'"></i>'+esc(label)+'</button>'}).join('');
+ let charted=ents.slice(0,8),over=ents.length-charted.length;
+ let metricOpts=CMP_COLS.map(k=>'<option value="'+k+'"'+(state.cmpMetric===k?' selected':'')+'>'+METRICS[k].label+'</option>').join('');
+ let body=rowsOf.length?rowsOf.map(x=>'<tr><td class="pin txt"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:999px;margin-right:7px;background:'+cmpColor(x.id)+'"></span>'+esc(x.label)+'</td>'+
+   CMP_COLS.map(k=>{let bg=state.heat.compare?heatBg(x[k],heat[k],METRICS[k].dir):'',d=state.cmpDelta&&Number.isFinite(x[k])&&Number.isFinite(avg[k])?'<div class="small" style="font-size:10px;color:'+(((x[k]-avg[k])*(METRICS[k].dir||1))>=0?'#047857':'#be123c')+'">'+((x[k]-avg[k])>=0?'+':'')+num(x[k]-avg[k],METRICS[k].format)+'</div>':'';
+    return '<td class="'+(bg?'heat':'')+'" style="'+bg+'">'+num(x[k],METRICS[k].format)+d+'</td>'}).join('')+'</tr>').join('')
+  :'<tr><td class="pin txt">Nothing selected</td><td colspan="'+CMP_COLS.length+'" class="txt">Pick '+(state.cmpMode==='market'?'markets':'technicians')+' above to build the comparison.</td></tr>';
+ return '<section class="section"><div class="sec-head"><div><h2>Side-by-side comparison</h2><p class="small">Each '+(state.cmpMode==='market'?'market':'technician')+' stays on its own row and its own line in the chart — nothing is aggregated. Group average is the mean of the rows shown; group total is the blended result of everyone selected.</p></div>'+
+ '<div class="seg">'+[['tech','Technician vs. Technician'],['market','Market vs. Market']].map(([k,l])=>'<button class="'+(state.cmpMode===k?'active':'')+'" data-cmpmode="'+k+'">'+l+'</button>').join('')+'</div></div>'+
+ rangeControl()+
+ '<div class="group-name" style="margin-bottom:6px">Select '+(state.cmpMode==='market'?'markets':'technicians')+' · '+sel.length+' selected</div><div class="chips">'+chips+'</div>'+
+ '<div class="rangebar" style="margin:12px 0 10px">'+toggleBtn('compare',state.heat.compare,'Heat map')+toggleBtn('cmpDelta',state.cmpDelta,'Δ vs group average')+(state.heat.compare?heatLegend():'')+'</div>'+
+ '<div class="scroll"><table><thead><tr><th class="pin txt">'+(state.cmpMode==='market'?'Market':'Technician')+'</th>'+CMP_COLS.map(k=>'<th>'+METRICS[k].label+'</th>').join('')+'</tr></thead>'+
+ '<tbody>'+body+'</tbody>'+
+ (rowsOf.length?'<tfoot><tr><td class="pin txt">Group average</td>'+CMP_COLS.map(k=>'<td>'+num(avg[k],METRICS[k].format)+'</td>').join('')+'</tr>'+
+  '<tr><td class="pin txt">Group total</td>'+CMP_COLS.map(k=>'<td>'+num(total[k],METRICS[k].format)+'</td>').join('')+'</tr></tfoot>':'')+
+ '</table></div>'+
+ (alloc?'':'<p class="small" style="margin-top:8px">Labor, utilization and margin columns need a range of at least a week; widen the range to fill them in.</p>')+
+ '</section>'+
+ '<section class="section"><div class="sec-head"><div><h2>'+METRICS[state.cmpMetric].label+' over time</h2><p class="small">'+rangeLabel()+(over>0?' · charting the first 8 selected; '+over+' more are in the table above.':'')+'</p></div>'+
+ '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="field">KPI<select class="select" id="cmpMetric">'+metricOpts+'</select></label>'+
+ '<div class="seg">'+GRAINS.map(([k,l])=>'<button class="'+(state.granularity===k?'active':'')+'" data-gran="'+k+'">'+l+'</button>').join('')+'</div>'+toggleBtn('cmpLabels',state.cmpLabels,'Data labels')+'</div></div>'+
+ '<div class="chart-wrap"><canvas id="cmpChart"></canvas></div><div id="cmpFallback" class="hidden"></div></section>'}
+
+/* ---------- trend tab ---------- */
+function rangeControl(){let{min,max}=bounds(),r=rangeDates();
+ return '<div class="rangebar"><div class="seg">'+RANGES.map(([k,l])=>'<button class="'+(state.range.mode===k?'active':'')+'" data-range="'+k+'">'+l+'</button>').join('')+'</div>'+
+ (state.range.mode==='custom'?'<label class="field">Start<input type="date" id="rangeStart" min="'+min+'" max="'+max+'" value="'+r.start+'"></label><label class="field">End<input type="date" id="rangeEnd" min="'+min+'" max="'+max+'" value="'+r.end+'"></label>':'')+
+ '<span class="chip">'+rangeLabel()+'</span></div>'}
+function bucketKey(r,g){return g==='monthly'?day(r).slice(0,7):g==='weekly'?week(r):day(r)}
+function bucketLabel(k,g){return g==='monthly'?new Date(k+'-01T12:00:00').toLocaleDateString(undefined,{month:'short',year:'2-digit'}):g==='weekly'?'Thu '+fmtDate(k):fmtDate(k)}
+function bucketize(rows,g){let m=new Map;rows.forEach(r=>{let k=bucketKey(r,g);(m.get(k)||m.set(k,[]).get(k)).push(r)});return m}
+function trendView(){
+ let skip=['goal','variance','revenuePace','jobsPace','activeTechs'],available=Object.keys(METRICS).filter(k=>!skip.includes(k));
+ return '<section class="section"><div class="sec-head"><div><h2>'+METRICS[state.trendMetric].label+'</h2><p class="small">'+rangeLabel()+' · '+GRAINS.find(g=>g[0]===state.granularity)[1].toLowerCase()+' buckets'+(state.granularity==='daily'&&METRICS[state.trendMetric].requiresLabor?' · labor-based KPIs are blank at daily granularity because payroll arrives weekly':'')+'</p></div>'+
+ '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="field">KPI<select class="select" id="trendMetric">'+available.map(k=>'<option value="'+k+'"'+(k===state.trendMetric?' selected':'')+'>'+METRICS[k].label+'</option>').join('')+'</select></label>'+
+ '<div class="seg">'+GRAINS.map(([k,l])=>'<button class="'+(state.granularity===k?'active':'')+'" data-gran="'+k+'">'+l+'</button>').join('')+'</div>'+toggleBtn('trendLabels',state.trendLabels,'Data labels')+'</div></div>'+
+ rangeControl()+'<div class="chart-wrap"><canvas id="trendChart"></canvas></div><div id="trendFallback" class="hidden"></div></section>'}
+
+/* ---------- goals, definitions, quality, detail ---------- */
+function goalsView(){let months=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].slice(-4),markets=[...new Set(state.ops.map(r=>r.market_name))].sort();
+ return '<section class="section"><h2>Monthly revenue goals</h2><p class="small">Defaults are trailing three-month market average revenue. Values live only in this page until you export them.</p>'+
+ '<div class="scroll"><table class="goal-table"><thead><tr><th class="pin txt">Market</th>'+months.map(m=>'<th>'+m+'</th>').join('')+'</tr></thead><tbody>'+
+ markets.map(m=>'<tr><td class="pin txt">'+esc(m)+'</td>'+months.map(mon=>{let key=m+'|'+mon,v=state.goals[key]??goalDefault(m,mon);return '<td><input data-goal="'+esc(key)+'" type="number" value="'+Math.round(v)+'"></td>'}).join('')+'</tr>').join('')+
+ '</tbody></table></div><p style="display:flex;gap:8px;align-items:center"><button class="btn" id="exportGoals">Export goals JSON</button><label class="chip">Import goals JSON <input id="importGoals" type="file" accept="application/json" hidden></label></p></section>'}
+function definitions(){let dirLabel=d=>d>0?'Higher is better':d<0?'Lower is better':'Volume-driven — not shaded';
+ return '<section class="section"><h2>Metric definitions</h2><p class="small">All dashboard calculations originate in the shared registry shown here. Direction drives the heat-map colouring on the technician, market and compare tables.</p>'+
+ '<div class="scroll"><table class="definition"><thead><tr><th class="txt">Metric</th><th class="txt">Formula</th><th class="txt">Source fields</th><th class="txt">Heat-map direction</th><th class="txt">Definition</th></tr></thead><tbody>'+
+ Object.values(METRICS).map(m=>'<tr><td class="txt">'+m.label+'</td><td class="txt">'+esc(m.formula)+'</td><td class="txt">'+esc(m.fields)+'</td><td class="txt">'+dirLabel(m.dir)+'</td><td class="txt">'+esc(m.description||'—')+'</td></tr>').join('')+
+ '</tbody></table></div></section>'}
+function quality(){
+ let laborIds=new Set(state.labor.map(l=>l.technician_id)),noLabor=new Map;
+ state.ops.filter(r=>!laborIds.has(r.technician_id)).forEach(r=>{let e=noLabor.get(r.technician_id)||{name:r.technician_name,markets:new Set()};e.markets.add(r.market_name);noLabor.set(r.technician_id,e)});
+ let missing=state.ops.filter(r=>String(r.normalized_actual_duration_minutes).trim()==='').length,parts=state.ops.reduce((a,r)=>a+n(r.parts_lines_missing_cost),0),bad=[],by=new Map;
+ state.ops.forEach(r=>{let a=by.get(r.technician_id)||[];a.push(r);by.set(r.technician_id,a)});
+ by.forEach(rs=>{let s=summarize(rs,{alloc:true});if(s.utilization!=null&&(s.utilization>1||s.utilization<.2))bad.push(rs[0].technician_name+': '+num(s.utilization,'percent'))});
+ return '<section class="section"><h2>Data quality & coverage</h2><p class="warn">Parts-cost gaps can overstate gross margin.</p><ul class="small">'+
+ '<li><b>Operations without labor:</b> '+([...noLabor.values()].map(x=>esc(x.name)+' ('+[...x.markets].join(', ')+')').join('; ')||'None')+'</li>'+
+ '<li><b>Missing normalized wrench time:</b> '+missing+' daily rows (treated as null).</li>'+
+ '<li><b>Parts lines missing cost:</b> '+parts+'.</li>'+
+ '<li><b>Weeks allocated at week level due to zero worked days:</b> '+state.allocated.filter(x=>x.fallback).length+' allocations.</li>'+
+ '<li><b>Likely utilization exceptions:</b> '+(bad.join('; ')||'None')+'.</li></ul>'+
+ '<p class="small">Labor is evenly allocated across worked days. If none exist in a labor week, it remains attributed to the technician\'s most frequent market rather than being dropped.</p></section>'}
+function detail(id){let rs=selectedRows({tech:id}),s=summarize(rs),market=rs[0]&&rs[0].market_name,
+ all=[...new Map(selectedRows({market,ignoreTechs:true}).map(r=>[r.technician_id,r.technician_id])).values()].map(t=>summarize(selectedRows({tech:t,market}))),
+ rank=k=>{let vals=all.map(x=>x[k]).filter(v=>v!=null).sort((a,b)=>(METRICS[k].dir<0?a-b:b-a));return s[k]==null?'—':(vals.findIndex(v=>v===s[k])+1)+' / '+vals.length};
+ return '<aside class="detail"><button class="close" id="close">Close</button><div class="group-name">'+esc(market||'')+'</div><h2>'+esc(rs[0]?rs[0].technician_name:'Technician')+'</h2>'+
+ '<p class="small">Metrics for the active period; rank is within market and respects each KPI\'s direction.</p><table>'+
+ ['revenue','jobs','avgTicket','ticketCompletion','rotorAttach','serviceRate','utilization','grossProfit','grossMargin','grossPerJob'].map(k=>'<tr><td class="txt">'+METRICS[k].label+'</td><td>'+num(s[k],METRICS[k].format)+'</td><td class="small">Rank '+rank(k)+'</td></tr>').join('')+'</table></aside>'}
+
+/* ---------- charts ---------- */
+const valueLabels={id:'valueLabels',afterDatasetsDraw(chart,args,opts){
+ if(!opts||!opts.show)return;let ctx=chart.ctx;ctx.save();ctx.font='600 10px Inter, system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+ chart.data.datasets.forEach((ds,di)=>{let meta=chart.getDatasetMeta(di);if(meta.hidden)return;let els=meta.data||[];if(!els.length)return;
+  let step=1;if(els.length>1){let gap=Math.abs(els[els.length-1].x-els[0].x)/(els.length-1);step=Math.max(1,Math.ceil(44/Math.max(gap,1)))}
+  els.forEach((el,i)=>{let v=ds.data[i];if(v==null||!Number.isFinite(v))return;if(i%step&&i!==els.length-1)return;
+   let text=numShort(v,opts.format);if(!text)return;let x=el.x,y=el.y-7;if(y<14)y=el.y+18;
+   ctx.lineWidth=3;ctx.strokeStyle='#ffffff';ctx.strokeText(text,x,y);ctx.fillStyle=ds.borderColor||'#374151';ctx.fillText(text,x,y)})});
+ ctx.restore()}};
+function axisOpts(format){return{responsive:true,maintainAspectRatio:false,layout:{padding:{top:22,right:10}},interaction:{mode:'index',intersect:false},
+ scales:{x:{grid:{display:false},ticks:{color:'#6b7280',maxRotation:0,autoSkip:true,font:{size:11}}},
+  y:{grid:{color:'#f1f5f9'},border:{display:false},ticks:{color:'#6b7280',font:{size:11},callback:v=>numShort(v,format)}}}}}
+function drawTrend(){
+ if(state.tab!=='trend')return;let{start,end}=rangeDates(),g=state.granularity,rows=filterRows(start,end),m=METRICS[state.trendMetric],
+ groups=bucketize(rows,g),keys=[...groups.keys()].sort(),vals=keys.map(k=>summarize(groups.get(k),{alloc:g!=='daily',noCache:true})[state.trendMetric]);
+ let fb=document.querySelector('#trendFallback');
+ if(!window.Chart){fb.classList.remove('hidden');fb.innerHTML='<div class="scroll"><table class="fallback"><tr><th>Period</th><th>'+m.label+'</th></tr>'+keys.map((x,i)=>'<tr><td>'+bucketLabel(x,g)+'</td><td>'+num(vals[i],m.format)+'</td></tr>').join('')+'</table></div>';return}
+ fb.classList.add('hidden');trendChart&&trendChart.destroy();
+ let bar=g!=='daily';
+ trendChart=new Chart(document.querySelector('#trendChart'),{type:bar?'bar':'line',plugins:[valueLabels],
+  data:{labels:keys.map(k=>bucketLabel(k,g)),datasets:[{label:m.label,data:vals,borderColor:'#4a3aa7',backgroundColor:bar?'#4a3aa7':'rgba(74,58,167,.12)',
+   borderWidth:2,borderRadius:4,borderSkipped:false,categoryPercentage:.82,barPercentage:.9,fill:!bar,tension:.25,spanGaps:true,
+   pointRadius:keys.length>60?0:3,pointHoverRadius:6,pointBackgroundColor:'#4a3aa7',pointBorderColor:'#fff',pointBorderWidth:1.5}]},
+  options:Object.assign(axisOpts(m.format),{plugins:{legend:{display:false},valueLabels:{show:state.trendLabels,format:m.format},
+   tooltip:{callbacks:{label:c=>m.label+': '+num(c.parsed.y,m.format)}}}})})}
+function drawCompare(){
+ if(state.tab!=='compare')return;let ents=cmpEntities().slice(0,8),{start,end}=rangeDates(),g=state.granularity,m=METRICS[state.cmpMetric];
+ let all=filterRows(start,end,{ignoreTechs:true}),keys=[...bucketize(all,g).keys()].sort();
+ let fb=document.querySelector('#cmpFallback');
+ if(!window.Chart){fb.classList.remove('hidden');fb.innerHTML='<p class="small">Charting library unavailable — the table above still carries every metric for the selected range.</p>';return}
+ fb.classList.add('hidden');cmpChart&&cmpChart.destroy();
+ let bar=g!=='daily'&&keys.length<=14&&ents.length<=4;
+ let datasets=ents.map(e=>{let b=bucketize(e.rows,g),c=cmpColor(e.id);
+  return{label:e.label,data:keys.map(k=>b.has(k)?summarize(b.get(k),{alloc:g!=='daily',noCache:true})[state.cmpMetric]:null),
+   borderColor:c,backgroundColor:bar?c:'transparent',borderWidth:2,borderRadius:4,borderSkipped:false,categoryPercentage:.78,barPercentage:.86,
+   fill:false,tension:.25,spanGaps:true,pointRadius:keys.length>40?0:3,pointHoverRadius:6,pointBackgroundColor:c,pointBorderColor:'#fff',pointBorderWidth:1.5}});
+ cmpChart=new Chart(document.querySelector('#cmpChart'),{type:bar?'bar':'line',plugins:[valueLabels],data:{labels:keys.map(k=>bucketLabel(k,g)),datasets},
+  options:Object.assign(axisOpts(m.format),{plugins:{legend:{display:datasets.length>0,position:'top',align:'start',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle',color:'#374151',font:{size:11}}},
+   valueLabels:{show:state.cmpLabels,format:m.format},tooltip:{callbacks:{label:c=>c.dataset.label+': '+num(c.parsed.y,m.format)}}}})})}
+function sparkSeries(key){let endKey=activePeriodKey(),keys=periodKeys().filter(k=>k<=endKey).slice(-8),
+ base=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&(!state.techs.length||state.techs.includes(r.technician_id))),
+ bucket=r=>state.period==='day'?day(r):state.period==='week'?week(r):day(r).slice(0,7);
+ return{keys,values:keys.map(k=>{let rs=base.filter(r=>bucket(r)===k),last=rs.map(day).sort().at(-1),opts=state.period==='month'&&last?{pace:last,noCache:true}:{noCache:true};return summarize(rs,opts)[key]})}}
+function drawSparklines(){if(state.tab!=='market')return;
+ document.querySelectorAll('.sparkline').forEach(canvas=>{let key=canvas.dataset.spark,s=sparkSeries(key),keys=s.keys,values=s.values,
+  finite=values.filter(Number.isFinite),ratio=window.devicePixelRatio||1,w=Math.max(100,canvas.clientWidth),h=32;
+  canvas.width=w*ratio;canvas.height=h*ratio;let ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#eef2f7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,h-4);ctx.lineTo(w,h-4);ctx.stroke();
+  if(!finite.length){ctx.fillStyle='#9ca3af';ctx.font='10px system-ui';ctx.fillText('No trend data',2,19);return}
+  let min=Math.min(...finite),max=Math.max(...finite),spread=max-min||Math.abs(max)||1,
+  x=i=>keys.length===1?w/2:i*(w-4)/(keys.length-1)+2,y=v=>h-5-(v-min)/spread*(h-10),
+  color=key==='variance'?(finite.at(-1)>=0?'#047857':'#be123c'):'#4a3aa7';
+  ctx.strokeStyle=color;ctx.lineWidth=1.75;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();let drawing=false;
+  values.forEach((v,i)=>{if(!Number.isFinite(v)){drawing=false;return}if(!drawing){ctx.moveTo(x(i),y(v));drawing=true}else ctx.lineTo(x(i),y(v))});ctx.stroke();
+  let lastIndex=values.findLastIndex(Number.isFinite);
+  if(lastIndex>=0){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x(lastIndex),y(values[lastIndex]),2.6,0,Math.PI*2);ctx.fill()}
+  canvas.title=METRICS[key].label+': '+keys[0]+' to '+keys.at(-1)})}
+
+/* ---------- wiring ---------- */
+function on(sel,ev,fn){let el=document.querySelector(sel);if(el)el[ev]=fn}
+function wire(){
+ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;render()});
+ on('#period','onchange',e=>{state.period=e.target.value;state.periodKey='';render()});
+ on('#periodKey','onchange',e=>{state.periodKey=e.target.value;render()});
+ on('#market','onchange',e=>{state.market=e.target.value;render()});
+ on('#techs','onchange',e=>{state.techs=[...e.target.selectedOptions].map(o=>o.value);render()});
+ on('#clearTechs','onclick',()=>{state.techs=[];render()});
+ document.querySelectorAll('[data-market]').forEach(x=>x.onclick=()=>{state.market=x.dataset.market;state.tab='tech';render()});
+ document.querySelectorAll('[data-tech]').forEach(x=>x.onclick=()=>{state.detail=x.dataset.tech;render()});
+ document.querySelectorAll('[data-sort]').forEach(x=>x.onclick=()=>{let k=x.dataset.sort;state.sort={key:k,dir:state.sort.key===k?-state.sort.dir:-1};render()});
+ document.querySelectorAll('[data-gran]').forEach(x=>x.onclick=()=>{state.granularity=x.dataset.gran;render()});
+ document.querySelectorAll('[data-range]').forEach(x=>x.onclick=()=>{let m=x.dataset.range;if(m==='custom'&&!state.range.start){let r=rangeDates();state.range.start=r.start;state.range.end=r.end}state.range.mode=m;render()});
+ on('#rangeStart','onchange',e=>{state.range.start=e.target.value;render()});
+ on('#rangeEnd','onchange',e=>{state.range.end=e.target.value;render()});
+ document.querySelectorAll('[data-toggle]').forEach(x=>x.onclick=()=>{let k=x.dataset.toggle;
+  if(k==='cmpDelta')state.cmpDelta=!state.cmpDelta;else if(k==='cmpLabels')state.cmpLabels=!state.cmpLabels;else if(k==='trendLabels')state.trendLabels=!state.trendLabels;else state.heat[k]=!state.heat[k];render()});
+ document.querySelectorAll('[data-preset]').forEach(x=>x.onclick=()=>{let k=x.dataset.preset;state.techPreset=k;state.techCols=PRESETS[k].cols.slice();state.colMenu=false;render()});
+ document.querySelectorAll('[data-cols]').forEach(x=>x.onclick=()=>{state.techCols=[];state.techPreset='custom';render()});
+ document.querySelectorAll('[data-col]').forEach(x=>x.onchange=()=>{let k=x.dataset.col;
+  state.techCols=x.checked?TECH_COLS.filter(c=>state.techCols.includes(c)||c===k):state.techCols.filter(c=>c!==k);
+  let hit=Object.entries(PRESETS).find(([,p])=>p.cols.length===state.techCols.length&&p.cols.every(c=>state.techCols.includes(c)));
+  state.techPreset=hit?hit[0]:'custom';render()});
+ on('#colMenu','ontoggle',e=>{state.colMenu=e.target.open});
+ document.querySelectorAll('[data-cmpmode]').forEach(x=>x.onclick=()=>{state.cmpMode=x.dataset.cmpmode;state.cmpColors={};cmpSelected().forEach(cmpColor);render()});
+ document.querySelectorAll('[data-cmp]').forEach(x=>x.onclick=()=>{let id=x.dataset.cmp,list=state.cmpMode==='market'?state.cmpMarkets:state.cmpTechs,i=list.indexOf(id);
+  if(i>=0){list.splice(i,1);delete state.cmpColors[id]}else{list.push(id);cmpColor(id)}render()});
+ on('#cmpMetric','onchange',e=>{state.cmpMetric=e.target.value;render()});
+ on('#trendMetric','onchange',e=>{state.trendMetric=e.target.value;render()});
+ on('#quality','onclick',()=>document.querySelector('#qualityPanel').classList.toggle('hidden'));
+ document.querySelectorAll('[data-goal]').forEach(x=>x.onchange=e=>{state.goals[e.target.dataset.goal]=n(e.target.value);state.cache.clear()});
+ on('#exportGoals','onclick',async()=>{
+  let btn=document.querySelector('#exportGoals'),json=JSON.stringify(state.goals,null,2),
+  say=t=>{btn.textContent=t;setTimeout(()=>{btn.textContent='Export goals JSON'},2600)},dl=null;
+  try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(err){dl=null}
+  if(dl){try{await dl.save({filename:'nubrakes-goals.json',data:json});say('Goals exported')}
+   catch(err){say(err&&err.code==='declined'?'Export canceled':'Export unavailable here')}return}
+  let a=document.createElement('a'),url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  a.href=url;a.download='nubrakes-goals.json';a.click();URL.revokeObjectURL(url);say('Goals exported')});
+ on('#importGoals','onchange',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader;r.onload=()=>{try{state.goals=JSON.parse(r.result);state.cache.clear();render()}catch(err){alert('That file is not valid goals JSON. Export a goals file first, edit the values, then import it again.')}};r.readAsText(f)});
+ on('#close','onclick',()=>{state.detail=null;render()})}
+function render(){
+ state.cache.clear();
+ let body=state.tab==='market'?marketView():state.tab==='tech'?techView():state.tab==='compare'?compareView():state.tab==='trend'?trendView():state.tab==='goals'?goalsView():definitions();
+ document.querySelector('#app').innerHTML='<div class="app-inner">'+controls()+'<div id="qualityPanel" class="hidden">'+quality()+'</div>'+body+'</div>'+(state.detail?detail(state.detail):'');
+ wire();drawSparklines();drawTrend();drawCompare()}
+async function load(){try{
+ let res=await Promise.all([fetch(OPS_URL).then(r=>r.ok?r.json():Promise.reject(OPS_URL)),
+  fetch(LABOR_URL).then(r=>r.ok?r.json():fetch(LABOR_FALLBACK).then(x=>x.ok?x.json():Promise.reject(LABOR_URL+' / fallback')))]);
+ state.ops=res[0];state.labor=res[1];allocate();render()}
+catch(e){document.querySelector('#app').innerHTML='<div class="notice"><h2>Unable to load dashboard data</h2><p>Failed feed: '+esc(String(e))+'. Check your connection and retry. Operations URL: '+OPS_URL+'; Labor URL: '+LABOR_URL+'</p><button class="btn" onclick="location.reload()">Retry</button></div>'}}
+load();
+</script>
+
+</body></html>
