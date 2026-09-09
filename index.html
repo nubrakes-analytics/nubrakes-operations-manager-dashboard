@@ -152,7 +152,7 @@ const CMP_COLS=['revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','ro
 const SERIES=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
 const RANGES=[['period','Selected period'],['l30','Last 30 days'],['l90','Last 90 days'],['l180','Last 6 months'],['ytd','Year to date'],['all','All data'],['custom','Custom']];
 const GRAINS=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
-const state={ops:[],labor:[],allocated:[],allocIndex:new Map,market:'All Markets',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
+const state={ops:[],labor:[],allocated:[],allocIndex:new Map,market:'All Markets',employment:'all',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
  trendMetric:'revenue',granularity:'daily',range:{mode:'period',start:'',end:''},trendLabels:true,
  heat:{tech:true,market:true,compare:true},techPreset:'all',techCols:PRESETS.all.cols.slice(),colMenu:false,
  cmpMode:'tech',cmpTechs:[],cmpMarkets:[],cmpMetric:'avgTicket',cmpLabels:false,cmpDelta:false,cmpColors:{},cmpSeeded:false,
@@ -181,7 +181,8 @@ function rangeDates(){let{min,max}=bounds(),m=state.range.mode;
  let back={l30:30,l90:90,l180:183}[m]||30,s=shiftDays(max,-(back-1));return{start:s<min?min:s,end:max}}
 function rangeLabel(){let r=rangeDates();return fmtDateY(r.start)+' – '+fmtDateY(r.end)+' ('+spanDays(r.start,r.end)+' days)'}
 function rangeAlloc(){let r=rangeDates();return spanDays(r.start,r.end)>=7||['week','month'].includes(state.period)}
-function filterRows(start,end,o={}){let mk=o.market||state.market;return state.ops.filter(r=>{let d=day(r);if(d<start||d>end)return false;if(mk!=='All Markets'&&r.market_name!==mk)return false;if(o.tech)return r.technician_id===o.tech;if(!o.ignoreTechs&&state.techs.length&&!state.techs.includes(r.technician_id))return false;return true})}
+const empOK=r=>state.employment==='all'||r.pt_ft_tagging===state.employment;
+function filterRows(start,end,o={}){let mk=o.market||state.market;return state.ops.filter(r=>{let d=day(r);if(d<start||d>end)return false;if(mk!=='All Markets'&&r.market_name!==mk)return false;if(!empOK(r))return false;if(o.tech)return r.technician_id===o.tech;if(!o.ignoreTechs&&state.techs.length&&!state.techs.includes(r.technician_id))return false;return true})}
 function selectedRows(extra={}){let{start,end}=dates();return filterRows(start,end,extra)}
 function priorRows(){let d=dates(),len=spanDays(d.start,d.end),end=shiftDays(d.start,-1),start=shiftDays(end,-(len-1));return filterRows(start,end)}
 
@@ -237,7 +238,9 @@ function toggleBtn(id,on,label){return '<button class="toggle" data-toggle="'+id
 /* ---------- shell ---------- */
 function controls(){
  let markets=[...new Set(state.ops.map(r=>r.market_name))].sort(),
- techOptions=state.ops.filter(r=>state.market==='All Markets'||r.market_name===state.market).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),
+ techOptions=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),
+ hasEmp=state.ops.some(r=>r.pt_ft_tagging),
+ empCount=t=>new Set(state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&(t==='all'||r.pt_ft_tagging===t)).map(r=>r.technician_id)).size,
  cov=coverage(selectedRows()),range=dates(),selectedKey=activePeriodKey(),keys=periodKeys().reverse(),
  note=cov.matched+'/'+cov.active+' active technicians have matching labor'+(cov.complete?'. Coverage is complete.':'. Uncovered labor is excluded, so Labor Cost may be understated and Simple Gross Profit and Margin may be overstated.'),
  periodNote=state.period==='week'?'<div class="notice small"><strong>Weekly labor uses the native weekly feed.</strong> '+note+'</div>':state.period==='month'?'<div class="notice small"><strong>Monthly labor is estimated from weekly payroll.</strong> Each technician\'s weekly hours and employer cost are split evenly across their worked days in that Thursday-start week, then only days inside this month are included. '+note+'</div>':'';
@@ -246,6 +249,7 @@ function controls(){
  '<div class="toolbar"><label class="field">View by<select class="select" id="period">'+[['month','Month'],['week','Week'],['day','Day']].map(([v,l])=>'<option value="'+v+'"'+(state.period===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
  '<label class="field">Select '+state.period+'<select class="select" id="periodKey">'+keys.map(k=>'<option value="'+k+'"'+(k===selectedKey?' selected':'')+'>'+periodLabel(k)+'</option>').join('')+'</select></label>'+
  '<label class="field">Market<select class="select" id="market"><option>All Markets</option>'+markets.map(x=>'<option'+(x===state.market?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>'+
+ (hasEmp?'<label class="field">Employment<select class="select" id="employment">'+[['all','All techs'],['FT','Full-time'],['PT','Part-time']].map(([v,l])=>'<option value="'+v+'"'+(state.employment===v?' selected':'')+'>'+l+' ('+empCount(v)+')</option>').join('')+'</select></label>':'')+
  '<label class="field">Technicians<select class="select" id="techs" multiple size="1">'+[...techOptions].map(([id,name])=>'<option value="'+id+'"'+(state.techs.includes(id)?' selected':'')+'>'+esc(name)+'</option>').join('')+'</select></label>'+
  (state.techs.length?'<button class="btn" id="clearTechs">Clear '+state.techs.length+' technician'+(state.techs.length>1?'s':'')+'</button>':'')+'</div>'+periodNote+
  '<nav class="tabs">'+[['market','Market Performance'],['tech','Technician Performance'],['compare','Compare'],['trend','Trend Analysis'],['goals','Goals'],['definitions','Definitions']].map(([k,l])=>'<button class="'+(state.tab===k?'active':'')+'" data-tab="'+k+'">'+l+'</button>').join('')+'<button id="quality">Data Quality</button></nav>'}
@@ -266,7 +270,7 @@ function marketView(){
  data=markets.map(m=>Object.assign({market:m},summarize(selectedRows({market:m,ignoreTechs:true})))),
  heat={};cols.forEach(k=>{if(METRICS[k].dir)heat[k]=data.map(x=>x[k])});
  return groups.map(([nm,ks])=>'<div class="kpi-group"><div class="group-name">'+nm+'</div><div class="cards">'+ks.map(k=>card(k,cur,prior)).join('')+'</div></div>').join('')+
- '<section class="section"><div class="sec-head"><div><h2>Market comparison</h2><p class="small">Every market for the selected period, regardless of the market and technician filters above. Click a market to open its technician performance.</p></div>'+
+ '<section class="section"><div class="sec-head"><div><h2>Market comparison</h2><p class="small">Every market for the selected period. The market and technician filters above do not narrow this table, but the Employment filter does. Click a market to open its technician performance.</p></div>'+
  '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+(state.heat.market?heatLegend():'')+toggleBtn('market',state.heat.market,'Heat map')+'</div></div>'+
  '<div class="scroll"><table><thead><tr><th class="pin txt">Market</th>'+cols.map(k=>'<th>'+METRICS[k].label+'</th>').join('')+'</tr></thead><tbody>'+
  data.map(x=>'<tr><td class="pin link" data-market="'+esc(x.market)+'">'+esc(x.market)+'</td>'+cols.map(k=>{let bg=state.heat.market?heatBg(x[k],heat[k],METRICS[k].dir):'';return '<td class="'+(bg?'heat':'')+'" style="'+bg+'">'+num(x[k],METRICS[k].format)+'</td>'}).join('')+'</tr>').join('')+
@@ -320,7 +324,7 @@ function compareView(){
  let heat={};CMP_COLS.forEach(k=>{if(METRICS[k].dir)heat[k]=rowsOf.map(x=>x[k])});
  let options=state.cmpMode==='market'
   ?[...new Set(state.ops.map(r=>r.market_name))].sort().map(m=>[m,m])
-  :[...state.ops.filter(r=>state.market==='All Markets'||r.market_name===state.market).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map())].sort((a,b)=>a[1].localeCompare(b[1]));
+  :[...state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map())].sort((a,b)=>a[1].localeCompare(b[1]));
  let sel=cmpSelected();
  let chips=options.map(([id,label])=>{let on=sel.includes(id);return '<button class="pill" data-cmp="'+esc(id)+'" aria-pressed="'+on+'"><i class="dot" style="'+(on?'background:'+cmpColor(id):'')+'"></i>'+esc(label)+'</button>'}).join('');
  let charted=ents.slice(0,8),over=ents.length-charted.length;
@@ -432,7 +436,7 @@ function drawCompare(){
   options:Object.assign(axisOpts(m.format),{plugins:{legend:{display:datasets.length>0,position:'top',align:'start',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle',color:'#374151',font:{size:11}}},
    valueLabels:{show:state.cmpLabels,format:m.format},tooltip:{callbacks:{label:c=>c.dataset.label+': '+num(c.parsed.y,m.format)}}}})})}
 function sparkSeries(key){let endKey=activePeriodKey(),keys=periodKeys().filter(k=>k<=endKey).slice(-8),
- base=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&(!state.techs.length||state.techs.includes(r.technician_id))),
+ base=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)&&(!state.techs.length||state.techs.includes(r.technician_id))),
  bucket=r=>state.period==='day'?day(r):state.period==='week'?week(r):day(r).slice(0,7);
  return{keys,values:keys.map(k=>{let rs=base.filter(r=>bucket(r)===k),last=rs.map(day).sort().at(-1),opts=state.period==='month'&&last?{pace:last,noCache:true}:{noCache:true};return summarize(rs,opts)[key]})}}
 function drawSparklines(){if(state.tab!=='market')return;
@@ -457,6 +461,11 @@ function wire(){
  on('#period','onchange',e=>{state.period=e.target.value;state.periodKey='';render()});
  on('#periodKey','onchange',e=>{state.periodKey=e.target.value;render()});
  on('#market','onchange',e=>{state.market=e.target.value;render()});
+ on('#employment','onchange',e=>{state.employment=e.target.value;
+  let ok=new Set(state.ops.filter(empOK).map(r=>r.technician_id));
+  state.techs=state.techs.filter(id=>ok.has(id));
+  state.cmpTechs=state.cmpTechs.filter(id=>{if(ok.has(id))return true;delete state.cmpColors[id];return false});
+  render()});
  on('#techs','onchange',e=>{state.techs=[...e.target.selectedOptions].map(o=>o.value);render()});
  on('#clearTechs','onclick',()=>{state.techs=[];render()});
  document.querySelectorAll('[data-market]').forEach(x=>x.onclick=()=>{state.market=x.dataset.market;state.tab='tech';render()});
@@ -498,9 +507,11 @@ function render(){
  document.querySelector('#app').innerHTML='<div class="app-inner">'+controls()+'<div id="qualityPanel" class="hidden">'+quality()+'</div>'+body+'</div>'+(state.detail?detail(state.detail):'');
  wire();drawSparklines();drawTrend();drawCompare()}
 async function load(){try{
- let res=await Promise.all([fetch(OPS_URL).then(r=>r.ok?r.json():Promise.reject(OPS_URL)),
-  fetch(LABOR_URL).then(r=>r.ok?r.json():fetch(LABOR_FALLBACK).then(x=>x.ok?x.json():Promise.reject(LABOR_URL+' / fallback')))]);
- state.ops=res[0];state.labor=res[1];allocate();render()}
+ let opt={cache:'no-cache'},res=await Promise.all([fetch(OPS_URL,opt).then(r=>r.ok?r.json():Promise.reject(OPS_URL)),
+  fetch(LABOR_URL,opt).then(r=>r.ok?r.json():fetch(LABOR_FALLBACK,opt).then(x=>x.ok?x.json():Promise.reject(LABOR_URL+' / fallback')))]);
+ state.ops=res[0];state.labor=res[1];
+ if(!state.ops.some(r=>r.pt_ft_tagging))state.employment='all';
+ allocate();render()}
 catch(e){document.querySelector('#app').innerHTML='<div class="notice"><h2>Unable to load dashboard data</h2><p>Failed feed: '+esc(String(e))+'. Check your connection and retry. Operations URL: '+OPS_URL+'; Labor URL: '+LABOR_URL+'</p><button class="btn" onclick="location.reload()">Retry</button></div>'}}
 load();
 </script>
