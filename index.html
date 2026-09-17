@@ -105,7 +105,7 @@ tfoot td.pin{z-index:2;background:#fbfbfd}
 .btn{padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#374151}
 .btn:hover{border-color:#cbd5e1}
 @media(max-width:1023px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:639px){.app{padding:12px}.top{display:block}.status-row{justify-content:flex-start;margin-top:8px}.field{flex:1}.select,.field input{min-width:100%;width:100%}.tabs button{padding-inline:12px}.cards{grid-template-columns:1fr}.card{min-height:auto}}
+@media(max-width:639px){.app{padding:12px}.top{display:block}.status-row{justify-content:flex-start;margin-top:8px}.field{flex:1 1 140px}.select,.field input{min-width:100%;width:100%}.tabs button{padding-inline:12px}.cards{grid-template-columns:1fr}.card{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <main class="app" id="app"><div class="notice">Loading NuBrakes operations and labor feeds…</div></main>
@@ -152,10 +152,12 @@ const PRESETS={
  profit:{label:'Profitability',cols:['market','revenue','laborCost','parts','grossProfit','grossMargin','grossPerJob']}
 };
 const CMP_COLS=['revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
+const TEXAS_MARKETS=['Dallas','Austin','Houston','San Antonio'];
+const REGIONS=[['all','All'],['Texas','Texas'],['East','East']];
 const SERIES=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
 const RANGES=[['period','Selected period'],['l30','Last 30 days'],['l90','Last 90 days'],['l180','Last 6 months'],['ytd','Year to date'],['all','All data'],['custom','Custom']];
 const GRAINS=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
-const state={ops:[],labor:[],allocated:[],allocIndex:new Map,market:'All Markets',employment:'all',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
+const state={ops:[],labor:[],allocated:[],allocIndex:new Map,region:'all',market:'All Markets',employment:'all',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
  trendMetric:'revenue',granularity:'daily',range:{mode:'period',start:'',end:''},trendLabels:true,
  heat:{tech:true,market:true,compare:true},techPreset:'all',techCols:PRESETS.all.cols.slice(),colMenu:false,
  cmpMode:'tech',cmpTechs:[],cmpMarkets:[],cmpMetric:'avgTicket',cmpLabels:false,cmpDelta:false,cmpColors:{},cmpSeeded:false,
@@ -184,8 +186,12 @@ function rangeDates(){let{min,max}=bounds(),m=state.range.mode;
  let back={l30:30,l90:90,l180:183}[m]||30,s=shiftDays(max,-(back-1));return{start:s<min?min:s,end:max}}
 function rangeLabel(){let r=rangeDates();return fmtDateY(r.start)+' – '+fmtDateY(r.end)+' ('+spanDays(r.start,r.end)+' days)'}
 function rangeAlloc(){let r=rangeDates();return spanDays(r.start,r.end)>=7||['week','month'].includes(state.period)}
+const regionOf=m=>TEXAS_MARKETS.includes(m)?'Texas':'East';
+const regionOK=m=>state.region==='all'||regionOf(m)===state.region;
+const mktOK=m=>regionOK(m)&&(state.market==='All Markets'||m===state.market);
+function regionMarkets(){return [...new Set(state.ops.map(r=>r.market_name))].filter(regionOK).sort()}
 const empOK=r=>state.employment==='all'||r.pt_ft_tagging===state.employment;
-function filterRows(start,end,o={}){let mk=o.market||state.market;return state.ops.filter(r=>{let d=day(r);if(d<start||d>end)return false;if(mk!=='All Markets'&&r.market_name!==mk)return false;if(!empOK(r))return false;if(o.tech)return r.technician_id===o.tech;if(!o.ignoreTechs&&state.techs.length&&!state.techs.includes(r.technician_id))return false;return true})}
+function filterRows(start,end,o={}){let mk=o.market||state.market;return state.ops.filter(r=>{let d=day(r);if(d<start||d>end)return false;if(mk==='All Markets'?!regionOK(r.market_name):r.market_name!==mk)return false;if(!empOK(r))return false;if(o.tech)return r.technician_id===o.tech;if(!o.ignoreTechs&&state.techs.length&&!state.techs.includes(r.technician_id))return false;return true})}
 function selectedRows(extra={}){let{start,end}=dates();return filterRows(start,end,extra)}
 function priorRows(){let d=dates(),len=spanDays(d.start,d.end),end=shiftDays(d.start,-1),start=shiftDays(end,-(len-1));return filterRows(start,end)}
 
@@ -211,10 +217,10 @@ function summarize(rows,opts={}){
   clockedHours:laborOK?clock:null,laborCost:laborOK?lc:null,utilization:laborOK&&clock?coveredInvoiced/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,
   grossProfit:gp,grossMargin:laborOK&&revenue?gp/revenue:null,grossPerJob:laborOK&&jobs?gp/jobs:null,grossPerTech:laborOK&&active?gp/active:null,
   daysWorked,coverage:cov,partialLabor:laborOK&&!cov.complete};
- if(opts.pace){let mon=opts.pace.slice(0,7),allMonth=state.ops.filter(r=>day(r).slice(0,7)===mon&&(state.market==='All Markets'||r.market_name===state.market)),
+ if(opts.pace){let mon=opts.pace.slice(0,7),allMonth=state.ops.filter(r=>day(r).slice(0,7)===mon&&mktOK(r.market_name)),
   business=new Set(allMonth.filter(r=>n(r.worked_day_flag)).map(day)).size,elapsed=workedDays.size;
   out.revenuePace=elapsed?revenue/elapsed*business:null;out.jobsPace=elapsed?jobs/elapsed*business:null;
-  out.goal=state.market==='All Markets'?[...new Set(state.ops.map(r=>r.market_name))].reduce((a,m)=>a+(state.goals[m+'|'+mon]??goalDefault(m,mon)),0):(state.goals[state.market+'|'+mon]??goalDefault(state.market,mon));
+  out.goal=state.market==='All Markets'?regionMarkets().reduce((a,m)=>a+(state.goals[m+'|'+mon]??goalDefault(m,mon)),0):(state.goals[state.market+'|'+mon]??goalDefault(state.market,mon));
   out.variance=out.goal!=null&&out.revenuePace!=null?out.revenuePace-out.goal:null}
  if(sig)state.cache.set(sig,out);return out}
 function allocate(){let byTW=new Map;state.ops.forEach((r,i)=>{r._key=i;let k=r.technician_id+'|'+week(r);(byTW.get(k)||byTW.set(k,[]).get(k)).push(r)});
@@ -240,10 +246,10 @@ function toggleBtn(id,on,label){return '<button class="toggle" data-toggle="'+id
 
 /* ---------- shell ---------- */
 function controls(){
- let markets=[...new Set(state.ops.map(r=>r.market_name))].sort(),
- techOptions=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),
+ let markets=regionMarkets(),
+ techOptions=state.ops.filter(r=>mktOK(r.market_name)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),
  hasEmp=state.ops.some(r=>r.pt_ft_tagging),
- empCount=t=>new Set(state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&(t==='all'||r.pt_ft_tagging===t)).map(r=>r.technician_id)).size,
+ empCount=t=>new Set(state.ops.filter(r=>mktOK(r.market_name)&&(t==='all'||r.pt_ft_tagging===t)).map(r=>r.technician_id)).size,
  cov=coverage(selectedRows()),range=dates(),selectedKey=activePeriodKey(),keys=periodKeys().reverse(),
  note=cov.matched+'/'+cov.active+' active technicians have matching labor'+(cov.complete?'. Coverage is complete.':'. Uncovered labor is excluded, so Labor Cost may be understated and Simple Gross Profit and Margin may be overstated.'),
  periodNote=state.period==='week'?'<div class="notice small"><strong>Weekly labor uses the native weekly feed.</strong> '+note+'</div>':state.period==='month'?'<div class="notice small"><strong>Monthly labor is estimated from weekly payroll.</strong> Each technician\'s weekly hours and employer cost are split evenly across their worked days in that Thursday-start week, then only days inside this month are included. '+note+'</div>':'';
@@ -251,7 +257,8 @@ function controls(){
  '<div class="status-row"><span class="badge live"><i class="badge-dot"></i>Live Data</span><span class="coverage">Labor coverage: '+cov.matched+'/'+cov.active+' active techs</span></div></div>'+
  '<div class="toolbar"><label class="field">View by<select class="select" id="period">'+[['month','Month'],['week','Week'],['day','Day']].map(([v,l])=>'<option value="'+v+'"'+(state.period===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
  '<label class="field">Select '+state.period+'<select class="select" id="periodKey">'+keys.map(k=>'<option value="'+k+'"'+(k===selectedKey?' selected':'')+'>'+periodLabel(k)+'</option>').join('')+'</select></label>'+
- '<label class="field">Market<select class="select" id="market"><option>All Markets</option>'+markets.map(x=>'<option'+(x===state.market?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>'+
+ '<label class="field">Region<select class="select" id="region">'+REGIONS.map(([k,l])=>'<option value="'+k+'"'+(state.region===k?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
+ '<label class="field">Market<select class="select" id="market"><option value="All Markets">'+(state.region==='all'?'All Markets':'All '+state.region+' markets')+'</option>'+markets.map(x=>'<option'+(x===state.market?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>'+
  (hasEmp?'<label class="field">Employment<select class="select" id="employment">'+[['all','All techs'],['FT','Full-time'],['PT','Part-time']].map(([v,l])=>'<option value="'+v+'"'+(state.employment===v?' selected':'')+'>'+l+' ('+empCount(v)+')</option>').join('')+'</select></label>':'')+
  '<label class="field">Technicians<select class="select" id="techs" multiple size="1">'+[...techOptions].map(([id,name])=>'<option value="'+id+'"'+(state.techs.includes(id)?' selected':'')+'>'+esc(name)+'</option>').join('')+'</select></label>'+
  (state.techs.length?'<button class="btn" id="clearTechs">Clear '+state.techs.length+' technician'+(state.techs.length>1?'s':'')+'</button>':'')+'</div>'+periodNote+
@@ -268,12 +275,12 @@ function marketView(){
  groups=[['Revenue',state.period==='month'?['revenue','revenuePace','goal','variance']:['revenue']],['Jobs',state.period==='month'?['jobs','jobsPace']:['jobs']],
   ['Ticket',['avgTicket','ticketCompletion','rotorAttach','serviceRate']],['Productivity',['jobsPerTech','revPerTech','utilization']],
   ['Labor',['clockedHours','laborCost','laborPct']],['Profitability',['grossProfit','grossMargin','grossPerTech']]],
- markets=[...new Set(state.ops.map(r=>r.market_name))].sort(),
+ markets=regionMarkets(),
  cols=['revenue','jobs','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','laborCost','laborPct','grossProfit','grossMargin'],
  data=markets.map(m=>Object.assign({market:m},summarize(selectedRows({market:m,ignoreTechs:true})))),
  heat={};cols.forEach(k=>{if(METRICS[k].dir)heat[k]=data.map(x=>x[k])});
  return groups.map(([nm,ks])=>'<div class="kpi-group"><div class="group-name">'+nm+'</div><div class="cards">'+ks.map(k=>card(k,cur,prior)).join('')+'</div></div>').join('')+
- '<section class="section"><div class="sec-head"><div><h2>Market comparison</h2><p class="small">Every market for the selected period. The market and technician filters above do not narrow this table, but the Employment filter does. Click a market to open its technician performance.</p></div>'+
+ '<section class="section"><div class="sec-head"><div><h2>Market comparison</h2><p class="small">Every market'+(state.region==='all'?'':' in '+state.region)+' for the selected period. The Market and Technician filters above do not narrow this table, but the Region and Employment filters do. Click a market to open its technician performance.</p></div>'+
  '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+(state.heat.market?heatLegend():'')+toggleBtn('market',state.heat.market,'Heat map')+'</div></div>'+
  '<div class="scroll"><table><thead><tr><th class="pin txt">Market</th>'+cols.map(k=>'<th>'+METRICS[k].label+'</th>').join('')+'</tr></thead><tbody>'+
  data.map(x=>'<tr><td class="pin link" data-market="'+esc(x.market)+'">'+esc(x.market)+'</td>'+cols.map(k=>{let bg=state.heat.market?heatBg(x[k],heat[k],METRICS[k].dir):'';return '<td class="'+(bg?'heat':'')+'" style="'+bg+'">'+num(x[k],METRICS[k].format)+'</td>'}).join('')+'</tr>').join('')+
@@ -311,7 +318,7 @@ function seedCompare(){
  if(state.techs.length){state.cmpTechs=state.techs.slice(0,6)}
  else{let by=new Map;filterRows(start,end,{ignoreTechs:true}).forEach(r=>{by.set(r.technician_id,(by.get(r.technician_id)||0)+n(r.revenue_amount))});
   state.cmpTechs=[...by].sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0])}
- let mk=[...new Set(state.ops.map(r=>r.market_name))].sort();
+ let mk=regionMarkets();
  state.cmpMarkets=state.market!=='All Markets'?[state.market].concat(mk.filter(m=>m!==state.market).slice(0,3)):mk.slice(0,4);
  cmpSelected().forEach(cmpColor)}
 function cmpEntities(){let{start,end}=rangeDates();
@@ -326,8 +333,8 @@ function compareView(){
  avg={};CMP_COLS.forEach(k=>{let f=rowsOf.map(x=>x[k]).filter(v=>Number.isFinite(v));avg[k]=f.length?f.reduce((a,b)=>a+b,0)/f.length:null});
  let heat={};CMP_COLS.forEach(k=>{if(METRICS[k].dir)heat[k]=rowsOf.map(x=>x[k])});
  let options=state.cmpMode==='market'
-  ?[...new Set(state.ops.map(r=>r.market_name))].sort().map(m=>[m,m])
-  :[...state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map())].sort((a,b)=>a[1].localeCompare(b[1]));
+  ?regionMarkets().map(m=>[m,m])
+  :[...state.ops.filter(r=>mktOK(r.market_name)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map())].sort((a,b)=>a[1].localeCompare(b[1]));
  let sel=cmpSelected();
  let chips=options.map(([id,label])=>{let on=sel.includes(id);return '<button class="pill" data-cmp="'+esc(id)+'" aria-pressed="'+on+'"><i class="dot" style="'+(on?'background:'+cmpColor(id):'')+'"></i>'+esc(label)+'</button>'}).join('');
  let charted=ents.slice(0,8),over=ents.length-charted.length;
@@ -439,7 +446,7 @@ function drawCompare(){
   options:Object.assign(axisOpts(m.format),{plugins:{legend:{display:datasets.length>0,position:'top',align:'start',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle',color:'#374151',font:{size:11}}},
    valueLabels:{show:state.cmpLabels,format:m.format},tooltip:{callbacks:{label:c=>c.dataset.label+': '+num(c.parsed.y,m.format)}}}})})}
 function sparkSeries(key){let endKey=activePeriodKey(),keys=periodKeys().filter(k=>k<=endKey).slice(-8),
- base=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)&&(!state.techs.length||state.techs.includes(r.technician_id))),
+ base=state.ops.filter(r=>mktOK(r.market_name)&&empOK(r)&&(!state.techs.length||state.techs.includes(r.technician_id))),
  bucket=r=>state.period==='day'?day(r):state.period==='week'?week(r):day(r).slice(0,7);
  return{keys,values:keys.map(k=>{let rs=base.filter(r=>bucket(r)===k),last=rs.map(day).sort().at(-1),opts=state.period==='month'&&last?{pace:last,noCache:true}:{noCache:true};return summarize(rs,opts)[key]})}}
 function sparkPeriod(k){if(state.period==='month')return new Date(k+'-01T12:00:00').toLocaleDateString(undefined,{month:'short',year:'numeric'});if(state.period==='week')return 'Week of '+fmtDateY(k);return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
@@ -485,6 +492,11 @@ function wire(){
  on('#period','onchange',e=>{state.period=e.target.value;state.periodKey='';render()});
  on('#periodKey','onchange',e=>{state.periodKey=e.target.value;render()});
  on('#market','onchange',e=>{state.market=e.target.value;render()});
+ on('#region','onchange',e=>{state.region=e.target.value;
+  if(state.market!=='All Markets'&&!regionOK(state.market))state.market='All Markets';
+  let ok=new Set(state.ops.filter(r=>regionOK(r.market_name)).map(r=>r.technician_id));
+  state.techs=state.techs.filter(id=>ok.has(id));
+  state.cmpSeeded=false;state.cmpColors={};state.detail=null;render()});
  on('#employment','onchange',e=>{state.employment=e.target.value;
   let ok=new Set(state.ops.filter(empOK).map(r=>r.technician_id));
   state.techs=state.techs.filter(id=>ok.has(id));
