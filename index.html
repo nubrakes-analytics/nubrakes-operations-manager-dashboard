@@ -141,8 +141,8 @@ const METRICS={
  overtimeHours:{key:'overtimeHours',label:'Overtime',format:'hours',dir:0,formula:'Σ allocated Overtime hours',fields:'Overtime, worked_day_flag',description:'Volume-driven, so it is not heat-shaded.',requiresLabor:true},
  holidayHours:{key:'holidayHours',label:'Holiday',format:'hours',dir:0,formula:'Σ allocated Holiday hours',fields:'Holiday, worked_day_flag',description:'Paid, not worked; excluded from Clocked Hours.',requiresLabor:true},
  ptoHours:{key:'ptoHours',label:'Paid Time Off',format:'hours',dir:0,formula:'Σ allocated Paid Time Off hours',fields:'Paid Time Off, worked_day_flag',description:'Paid, not worked; excluded from Clocked Hours.',requiresLabor:true},
- driveHours:{key:'driveHours',label:'Drive Time Hours',format:'hours',dir:0,formula:'Σ allocated Normalized Drive Time × 90%',fields:'Normalized Drive Time, worked_day_flag',description:'Counted only in payroll weeks that have clocked hours. A blank drive time counts as 0 hours.',requiresLabor:true},
- totalEfficiency:{key:'totalEfficiency',label:'Total Technician Efficiency',format:'percent',dir:1,formula:'(Drive Time Hours + Invoiced Hours (Payroll Days)) ÷ Clocked Hours (Regular + OT)',fields:'Normalized Drive Time, invoiced_minutes, Regular, Overtime',description:'Technician Efficiency with drive time credited as productive time. Labor coverage required.',requiresLabor:true},
+ driveHours:{key:'driveHours',label:'Drive Time Hours',format:'hours',dir:0,formula:'Σ daily Normalized Drive Time × 90%, on days with clocked hours',fields:'Normalized Drive Time (fact_technician_operations_daily), Regular, Overtime',description:'Daily drive hours from the operations feed. Limited to the same payroll-covered days as Invoiced Hours (Payroll Days) so Total Technician Efficiency compares like with like.',requiresLabor:true},
+ totalEfficiency:{key:'totalEfficiency',label:'Total Technician Efficiency',format:'percent',dir:1,formula:'(Drive Time Hours + Invoiced Hours (Payroll Days)) ÷ Clocked Hours (Regular + OT)',fields:'Normalized Drive Time (operations daily), invoiced_minutes, Regular, Overtime',description:'Technician Efficiency with drive time credited as productive time. Labor coverage required.',requiresLabor:true},
  laborCost:{key:'laborCost',label:'Labor Cost',format:'currency',dir:0,formula:'Σ allocated Total Employer Cost',fields:'Total Employer Cost, worked_day_flag',description:'Volume-driven, so it is not heat-shaded; use Labor Cost % of Revenue for the rate-adjusted view.',requiresLabor:true},
  laborPct:{key:'laborPct',label:'Labor Cost % of Revenue',format:'percent',dir:-1,formula:'Labor Cost ÷ Revenue',fields:'Total Employer Cost, revenue_amount',description:'Labor coverage required. Lower is better.',requiresLabor:true},
  parts:{key:'parts',label:'Parts Cost',format:'currency',dir:0,formula:'Σ parts_cost_amount',fields:'parts_cost_amount',description:'Volume-driven, so it is not heat-shaded.'},
@@ -215,8 +215,9 @@ function summarize(rows,opts={}){
  active=cov.active,clock=lsum('hours'),lc=lsum('cost'),parts=sum('parts_cost_amount'),
  allocatedAvailable=alloc&&cov.matched>0,laborOK=active>0&&(cov.complete||allocatedAvailable);
  let HL=L.filter(a=>a.hasHours),hsum=f=>HL.reduce((a,r)=>a+n(r[f]),0),
- payrollInv=rows.filter(r=>(state.allocIndex.get(r._key)||[]).some(a=>a.hasHours)).reduce((a,r)=>a+n(r.invoiced_minutes),0)/60,
- hoursOK=laborOK&&HL.length>0,drive=hsum('drive');
+ payrollRows=rows.filter(r=>(state.allocIndex.get(r._key)||[]).some(a=>a.hasHours)),
+ payrollInv=payrollRows.reduce((a,r)=>a+n(r.invoiced_minutes),0)/60,
+ hoursOK=laborOK&&HL.length>0,drive=.9*payrollRows.reduce((a,r)=>a+n(r['Normalized Drive Time']),0);
  let workedDays=new Set(rows.filter(r=>n(r.worked_day_flag)).map(day)),daysWorked=sum('worked_day_flag');
  let gp=laborOK?revenue-lc-parts:null;
  let out={revenue,jobs,avgTicket:invoiced?revenue/invoiced:null,ticketCompletion:booked?revenue/booked:null,rotorAttach:rotorElig?rotorAtt/rotorElig:null,
@@ -236,7 +237,7 @@ function clockedOf(l){let h=numOrNull(l.Hours);if(h!=null)return h;let r=numOrNu
 function allocate(){let byTW=new Map;state.ops.forEach((r,i)=>{r._key=i;let k=r.technician_id+'|'+week(r);(byTW.get(k)||byTW.set(k,[]).get(k)).push(r)});
  state.allocated=[];state.labor.forEach(l=>{let rs=byTW.get(l.technician_id+'|'+week(l))||[],worked=rs.filter(r=>n(r.worked_day_flag)),pool=worked.length?worked:rs;
   let market=pool.length?Object.entries(pool.reduce((a,r)=>(a[r.market_name]=(a[r.market_name]||0)+1,a),{})).sort((a,b)=>b[1]-a[1])[0][0]:l.market_name;
-  pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(clockedOf(l))/pool.length,hasHours:clockedOf(l)!=null,regular:n(numOrNull(l.Regular))/pool.length,overtime:n(numOrNull(l.Overtime))/pool.length,holiday:n(numOrNull(l.Holiday))/pool.length,pto:n(numOrNull(l['Paid Time Off']))/pool.length,drive:.9*n(numOrNull(l['Normalized Drive Time']))/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}))});
+  pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(clockedOf(l))/pool.length,hasHours:clockedOf(l)!=null,regular:n(numOrNull(l.Regular))/pool.length,overtime:n(numOrNull(l.Overtime))/pool.length,holiday:n(numOrNull(l.Holiday))/pool.length,pto:n(numOrNull(l['Paid Time Off']))/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}))});
  state.allocIndex=new Map;state.allocated.forEach(a=>{(state.allocIndex.get(a._key)||state.allocIndex.set(a._key,[]).get(a._key)).push(a)})}
 function goalDefault(m,mon){let past=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].filter(x=>x<mon).slice(-3);
  let vals=past.map(x=>summarize(state.ops.filter(r=>r.market_name===m&&day(r).slice(0,7)===x),{noCache:true,alloc:true}).revenue);
@@ -402,13 +403,12 @@ function quality(){
  let missing=state.ops.filter(r=>String(r.normalized_actual_duration_minutes).trim()==='').length,parts=state.ops.reduce((a,r)=>a+n(r.parts_lines_missing_cost),0),bad=[],by=new Map;
  state.ops.forEach(r=>{let a=by.get(r.technician_id)||[];a.push(r);by.set(r.technician_id,a)});
  by.forEach(rs=>{let s=summarize(rs,{alloc:true});if(s.utilization!=null&&(s.utilization>1||s.utilization<.2))bad.push(rs[0].technician_name+': '+num(s.utilization,'percent'))});
- let opsInfo=new Map;state.ops.forEach(r=>opsInfo.set(r.technician_id,{market:r.market_name,type:r.pt_ft_tagging||''}));
- let noDrive=new Map;state.labor.forEach(l=>{let c=clockedOf(l);if(!(c>0))return;let e=noDrive.get(l.technician_id)||{id:l.technician_id,name:l.technician_name,weeks:0,missing:[],clock:0,ever:false};e.weeks++;
-  if(numOrNull(l['Normalized Drive Time'])==null){e.missing.push(week(l));e.clock+=c}noDrive.set(l.technician_id,e)});
- state.labor.forEach(l=>{let e=noDrive.get(l.technician_id);if(e&&numOrNull(l['Normalized Drive Time'])!=null)e.ever=true});
- let noDriveList=[...noDrive.values()].filter(e=>e.missing.length).map(e=>Object.assign(e,opsInfo.get(e.id)||{market:'—',type:''})).sort((a,b)=>b.clock-a.clock);
- let noDriveTable=noDriveList.length?'<div class="scroll" style="margin:6px 0 4px"><table><thead><tr><th class="pin txt">Technician</th><th class="txt">Market</th><th class="txt">PT/FT</th><th>Weeks missing</th><th>Clocked hrs affected</th><th class="txt">Drive time in other weeks</th><th class="txt">Weeks missing drive time</th></tr></thead><tbody>'+
-  noDriveList.map(e=>'<tr><td class="pin txt">'+esc(e.name)+'</td><td class="txt">'+esc(e.market)+'</td><td class="txt">'+esc(e.type||'—')+'</td><td>'+e.missing.length+' of '+e.weeks+'</td><td>'+num(e.clock,'hours')+'</td><td class="txt">'+(e.ever?'Yes':'Never')+'</td><td class="txt">'+e.missing.sort().map(fmtDate).join(', ')+'</td></tr>').join('')+
+ let driveStart=state.ops.filter(r=>n(r['Normalized Drive Time'])>0).map(day).sort()[0],noDrive=new Map;
+ if(driveStart)state.ops.forEach(r=>{if(day(r)<driveStart||!n(r.worked_day_flag))return;let e=noDrive.get(r.technician_id)||{id:r.technician_id,name:r.technician_name,market:r.market_name,type:r.pt_ft_tagging||'',days:0,missing:0,ever:false};
+  e.days++;if(n(r['Normalized Drive Time'])>0)e.ever=true;else e.missing++;noDrive.set(r.technician_id,e)});
+ let noDriveList=[...noDrive.values()].filter(e=>e.missing).sort((a,b)=>(b.missing/b.days)-(a.missing/a.days)||b.missing-a.missing);
+ let noDriveTable=noDriveList.length?'<div class="scroll" style="margin:6px 0 4px"><table><thead><tr><th class="pin txt">Technician</th><th class="txt">Market</th><th class="txt">PT/FT</th><th>Worked days without drive time</th><th>Share of worked days</th><th class="txt">Drive time on other days</th></tr></thead><tbody>'+
+  noDriveList.map(e=>'<tr><td class="pin txt">'+esc(e.name)+'</td><td class="txt">'+esc(e.market)+'</td><td class="txt">'+esc(e.type||'—')+'</td><td>'+e.missing+' of '+e.days+'</td><td>'+num(e.missing/e.days,'percent')+'</td><td class="txt">'+(e.ever?'Yes':'Never')+'</td></tr>').join('')+
   '</tbody></table></div>':'';
  return '<section class="section"><h2>Data quality & coverage</h2><p class="warn">Parts-cost gaps can overstate gross margin.</p><ul class="small">'+
  '<li><b>Operations without labor:</b> '+([...noLabor.values()].map(x=>esc(x.name)+' ('+[...x.markets].join(', ')+')').join('; ')||'None')+'</li>'+
@@ -416,7 +416,7 @@ function quality(){
  '<li><b>Parts lines missing cost:</b> '+parts+'.</li>'+
  '<li><b>Weeks allocated at week level due to zero worked days:</b> '+state.allocated.filter(x=>x.fallback).length+' allocations.</li>'+
  '<li><b>Likely efficiency exceptions:</b> '+(bad.join('; ')||'None')+'.</li>'+
- '<li><b>Clocked hours but no drive time:</b> '+(noDriveList.length?noDriveList.length+' technicians, '+noDriveList.reduce((a,e)=>a+e.missing.length,0)+' technician-weeks. Drive time counts as 0 in these weeks, so Total Technician Efficiency is understated.':'None.')+noDriveTable+'</li></ul>'+
+ '<li><b>Worked days with no drive time</b> (since '+(driveStart?fmtDateY(driveStart):'—')+', from the operations daily feed): '+(noDriveList.length?noDriveList.length+' technicians, '+noDriveList.reduce((a,e)=>a+e.missing,0)+' worked days. Those days add 0 drive hours, so Total Technician Efficiency is understated where they overlap payroll.':'None.')+noDriveTable+'</li></ul>'+
  '<p class="small">Labor is evenly allocated across worked days. If none exist in a labor week, it remains attributed to the technician\'s most frequent market rather than being dropped.</p></section>'}
 function detail(id){let rs=selectedRows({tech:id}),s=summarize(rs),market=rs[0]&&rs[0].market_name,
  all=[...new Map(selectedRows({market,ignoreTechs:true}).map(r=>[r.technician_id,r.technician_id])).values()].map(t=>summarize(selectedRows({tech:t,market}))),
