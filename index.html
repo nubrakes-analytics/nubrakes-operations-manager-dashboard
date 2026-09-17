@@ -134,8 +134,15 @@ const METRICS={
  revenuePerDay:{key:'revenuePerDay',label:'Revenue / Day',format:'currency',dir:1,formula:'Σ revenue ÷ Σ worked_day_flag',fields:'revenue_amount, worked_day_flag',description:'Uses days worked, not calendar days.'},
  jobsPerDay:{key:'jobsPerDay',label:'Jobs / Day',format:'number',dir:1,formula:'Σ completed jobs ÷ Σ worked_day_flag',fields:'completed_jobs_count, worked_day_flag',description:'Uses days worked, not calendar days.'},
  invoicedHours:{key:'invoicedHours',label:'Invoiced Hours',format:'hours',dir:1,formula:'Σ invoiced_minutes ÷ 60',fields:'invoiced_minutes',description:''},
- utilization:{key:'utilization',label:'Technician Utilization',format:'percent',dir:1,formula:'Invoiced Hours ÷ allocated clocked hours',fields:'invoiced_minutes, Hours',description:'Labor coverage required.',requiresLabor:true},
- clockedHours:{key:'clockedHours',label:'Clocked Hours',format:'hours',dir:0,formula:'Σ allocated Hours',fields:'Hours, worked_day_flag',description:'Weekly labor is split evenly over worked days. Volume-driven, so it is not heat-shaded.',requiresLabor:true},
+ payrollInvoicedHours:{key:'payrollInvoicedHours',label:'Invoiced Hours (Payroll Days)',format:'hours',dir:0,formula:'Σ invoiced_minutes ÷ 60 on days with allocated payroll',fields:'invoiced_minutes, Regular, Overtime, worked_day_flag',description:'Invoiced hours limited to days that have clocked hours, so it lines up with Clocked Hours while payroll lags operations. Volume-driven, so it is not heat-shaded.',requiresLabor:true},
+ utilization:{key:'utilization',label:'Technician Efficiency',format:'percent',dir:1,formula:'Invoiced Hours (Payroll Days) ÷ Clocked Hours',fields:'invoiced_minutes, Regular, Overtime',description:'Only days covered by payroll count on both sides, so days after the latest payroll week do not inflate efficiency. Labor coverage required.',requiresLabor:true},
+ clockedHours:{key:'clockedHours',label:'Clocked Hours (Regular + OT)',format:'hours',dir:0,formula:'Σ allocated (Regular + Overtime) hours',fields:'Regular, Overtime, worked_day_flag',description:'Hours actually worked; Holiday and Paid Time Off are excluded. Weekly labor is split evenly over worked days. Volume-driven, so it is not heat-shaded.',requiresLabor:true},
+ regularHours:{key:'regularHours',label:'Regular',format:'hours',dir:0,formula:'Σ allocated Regular hours',fields:'Regular, worked_day_flag',description:'Volume-driven, so it is not heat-shaded.',requiresLabor:true},
+ overtimeHours:{key:'overtimeHours',label:'Overtime',format:'hours',dir:0,formula:'Σ allocated Overtime hours',fields:'Overtime, worked_day_flag',description:'Volume-driven, so it is not heat-shaded.',requiresLabor:true},
+ holidayHours:{key:'holidayHours',label:'Holiday',format:'hours',dir:0,formula:'Σ allocated Holiday hours',fields:'Holiday, worked_day_flag',description:'Paid, not worked; excluded from Clocked Hours.',requiresLabor:true},
+ ptoHours:{key:'ptoHours',label:'Paid Time Off',format:'hours',dir:0,formula:'Σ allocated Paid Time Off hours',fields:'Paid Time Off, worked_day_flag',description:'Paid, not worked; excluded from Clocked Hours.',requiresLabor:true},
+ driveHours:{key:'driveHours',label:'Drive Time Hours',format:'hours',dir:0,formula:'Σ allocated Normalized Drive Time × 90%',fields:'Normalized Drive Time, worked_day_flag',description:'Counted only in payroll weeks that have clocked hours. A blank drive time counts as 0 hours.',requiresLabor:true},
+ totalEfficiency:{key:'totalEfficiency',label:'Total Technician Efficiency',format:'percent',dir:1,formula:'(Drive Time Hours + Invoiced Hours (Payroll Days)) ÷ Clocked Hours (Regular + OT)',fields:'Normalized Drive Time, invoiced_minutes, Regular, Overtime',description:'Technician Efficiency with drive time credited as productive time. Labor coverage required.',requiresLabor:true},
  laborCost:{key:'laborCost',label:'Labor Cost',format:'currency',dir:0,formula:'Σ allocated Total Employer Cost',fields:'Total Employer Cost, worked_day_flag',description:'Volume-driven, so it is not heat-shaded; use Labor Cost % of Revenue for the rate-adjusted view.',requiresLabor:true},
  laborPct:{key:'laborPct',label:'Labor Cost % of Revenue',format:'percent',dir:-1,formula:'Labor Cost ÷ Revenue',fields:'Total Employer Cost, revenue_amount',description:'Labor coverage required. Lower is better.',requiresLabor:true},
  parts:{key:'parts',label:'Parts Cost',format:'currency',dir:0,formula:'Σ parts_cost_amount',fields:'parts_cost_amount',description:'Volume-driven, so it is not heat-shaded.'},
@@ -144,14 +151,14 @@ const METRICS={
  grossPerJob:{key:'grossPerJob',label:'Simple Gross Profit / Job',format:'currency',dir:1,formula:'Simple Gross Profit ÷ Σ completed_jobs_count',fields:'revenue_amount, Total Employer Cost, parts_cost_amount, completed_jobs_count',description:'Labor coverage required.',requiresLabor:true},
  grossPerTech:{key:'grossPerTech',label:'Simple Gross Profit per Technician',format:'currency',dir:1,formula:'Simple Gross Profit ÷ Active Technicians',fields:'revenue_amount, Total Employer Cost, parts_cost_amount, technician_id',description:'Labor coverage required.',requiresLabor:true}
 };
-const TECH_COLS=['market','daysWorked','revenue','revenuePerDay','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
+const TECH_COLS=['market','daysWorked','revenue','revenuePerDay','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','payrollInvoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
 const PRESETS={
  all:{label:'All metrics',cols:TECH_COLS.slice()},
  kpi:{label:'Performance / KPI',cols:['market','revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate']},
- efficiency:{label:'Efficiency',cols:['market','clockedHours','invoicedHours','utilization','laborCost','laborPct']},
+ efficiency:{label:'Efficiency',cols:['market','clockedHours','invoicedHours','payrollInvoicedHours','utilization','laborCost','laborPct']},
  profit:{label:'Profitability',cols:['market','revenue','laborCost','parts','grossProfit','grossMargin','grossPerJob']}
 };
-const CMP_COLS=['revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
+const CMP_COLS=['revenue','jobs','jobsPerDay','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','invoicedHours','payrollInvoicedHours','utilization','laborCost','laborPct','parts','grossProfit','grossMargin','grossPerJob'];
 const TEXAS_MARKETS=['Dallas','Austin','Houston','San Antonio'];
 const REGIONS=[['all','All'],['Texas','Texas'],['East','East']];
 const SERIES=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
@@ -206,15 +213,16 @@ function summarize(rows,opts={}){
  revenue=sum('revenue_amount'),booked=sum('booked_revenue_amount'),jobs=sum('completed_jobs_count'),invoiced=sum('invoiced_jobs_count'),
  rotorElig=sum('rotor_eligible_jobs_count'),rotorAtt=sum('rotor_attached_jobs_count'),
  active=cov.active,clock=lsum('hours'),lc=lsum('cost'),parts=sum('parts_cost_amount'),
- allocatedAvailable=alloc&&cov.matched>0,laborOK=active>0&&(cov.complete||allocatedAvailable),
- laborTechs=new Set(L.map(r=>r.technician_id)),
- coveredInvoiced=rows.filter(r=>laborTechs.has(r.technician_id)).reduce((a,r)=>a+n(r.invoiced_minutes),0)/60;
+ allocatedAvailable=alloc&&cov.matched>0,laborOK=active>0&&(cov.complete||allocatedAvailable);
+ let HL=L.filter(a=>a.hasHours),hsum=f=>HL.reduce((a,r)=>a+n(r[f]),0),
+ payrollInv=rows.filter(r=>(state.allocIndex.get(r._key)||[]).some(a=>a.hasHours)).reduce((a,r)=>a+n(r.invoiced_minutes),0)/60,
+ hoursOK=laborOK&&HL.length>0,drive=hsum('drive');
  let workedDays=new Set(rows.filter(r=>n(r.worked_day_flag)).map(day)),daysWorked=sum('worked_day_flag');
  let gp=laborOK?revenue-lc-parts:null;
  let out={revenue,jobs,avgTicket:invoiced?revenue/invoiced:null,ticketCompletion:booked?revenue/booked:null,rotorAttach:rotorElig?rotorAtt/rotorElig:null,
   serviceRate:jobs?sum('service_call_jobs_count')/jobs:null,activeTechs:active,jobsPerTech:active?jobs/active:null,revPerTech:active?revenue/active:null,
   revenuePerDay:daysWorked?revenue/daysWorked:null,jobsPerDay:daysWorked?jobs/daysWorked:null,invoicedHours:sum('invoiced_minutes')/60,parts,
-  clockedHours:laborOK?clock:null,laborCost:laborOK?lc:null,utilization:laborOK&&clock?coveredInvoiced/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,
+  clockedHours:hoursOK?clock:null,regularHours:hoursOK?hsum('regular'):null,overtimeHours:hoursOK?hsum('overtime'):null,holidayHours:hoursOK?hsum('holiday'):null,ptoHours:hoursOK?hsum('pto'):null,driveHours:hoursOK?drive:null,laborCost:laborOK?lc:null,payrollInvoicedHours:hoursOK?payrollInv:null,utilization:hoursOK&&clock?payrollInv/clock:null,totalEfficiency:hoursOK&&clock?(drive+payrollInv)/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,
   grossProfit:gp,grossMargin:laborOK&&revenue?gp/revenue:null,grossPerJob:laborOK&&jobs?gp/jobs:null,grossPerTech:laborOK&&active?gp/active:null,
   daysWorked,coverage:cov,partialLabor:laborOK&&!cov.complete};
  if(opts.pace){let mon=opts.pace.slice(0,7),allMonth=state.ops.filter(r=>day(r).slice(0,7)===mon&&mktOK(r.market_name)),
@@ -223,10 +231,12 @@ function summarize(rows,opts={}){
   out.goal=state.market==='All Markets'?regionMarkets().reduce((a,m)=>a+(state.goals[m+'|'+mon]??goalDefault(m,mon)),0):(state.goals[state.market+'|'+mon]??goalDefault(state.market,mon));
   out.variance=out.goal!=null&&out.revenuePace!=null?out.revenuePace-out.goal:null}
  if(sig)state.cache.set(sig,out);return out}
+const numOrNull=v=>{if(v==null)return null;let t=String(v).trim();if(t===''||!Number.isFinite(Number(t)))return null;return Number(t)};
+function clockedOf(l){let h=numOrNull(l.Hours);if(h!=null)return h;let r=numOrNull(l.Regular),o=numOrNull(l.Overtime);return r==null&&o==null?null:(r||0)+(o||0)}
 function allocate(){let byTW=new Map;state.ops.forEach((r,i)=>{r._key=i;let k=r.technician_id+'|'+week(r);(byTW.get(k)||byTW.set(k,[]).get(k)).push(r)});
  state.allocated=[];state.labor.forEach(l=>{let rs=byTW.get(l.technician_id+'|'+week(l))||[],worked=rs.filter(r=>n(r.worked_day_flag)),pool=worked.length?worked:rs;
   let market=pool.length?Object.entries(pool.reduce((a,r)=>(a[r.market_name]=(a[r.market_name]||0)+1,a),{})).sort((a,b)=>b[1]-a[1])[0][0]:l.market_name;
-  pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(l.Hours)/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}))});
+  pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(clockedOf(l))/pool.length,hasHours:clockedOf(l)!=null,regular:n(numOrNull(l.Regular))/pool.length,overtime:n(numOrNull(l.Overtime))/pool.length,holiday:n(numOrNull(l.Holiday))/pool.length,pto:n(numOrNull(l['Paid Time Off']))/pool.length,drive:.9*n(numOrNull(l['Normalized Drive Time']))/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}))});
  state.allocIndex=new Map;state.allocated.forEach(a=>{(state.allocIndex.get(a._key)||state.allocIndex.set(a._key,[]).get(a._key)).push(a)})}
 function goalDefault(m,mon){let past=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].filter(x=>x<mon).slice(-3);
  let vals=past.map(x=>summarize(state.ops.filter(r=>r.market_name===m&&day(r).slice(0,7)===x),{noCache:true,alloc:true}).revenue);
@@ -276,7 +286,7 @@ function marketView(){
   ['Ticket',['avgTicket','ticketCompletion','rotorAttach','serviceRate']],['Productivity',['jobsPerTech','revPerTech','utilization']],
   ['Labor',['clockedHours','laborCost','laborPct']],['Profitability',['grossProfit','grossMargin','grossPerTech']]],
  markets=regionMarkets(),
- cols=['revenue','jobs','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','laborCost','laborPct','grossProfit','grossMargin'],
+ cols=['revenue','jobs','avgTicket','ticketCompletion','rotorAttach','serviceRate','clockedHours','regularHours','overtimeHours','holidayHours','ptoHours','driveHours','payrollInvoicedHours','utilization','totalEfficiency','laborCost','laborPct','grossProfit','grossMargin'],
  data=markets.map(m=>Object.assign({market:m},summarize(selectedRows({market:m,ignoreTechs:true})))),
  heat={};cols.forEach(k=>{if(METRICS[k].dir)heat[k]=data.map(x=>x[k])});
  return groups.map(([nm,ks])=>'<div class="kpi-group"><div class="group-name">'+nm+'</div><div class="cards">'+ks.map(k=>card(k,cur,prior)).join('')+'</div></div>').join('')+
@@ -297,7 +307,7 @@ function techView(){
  let menu='<details class="picker"'+(state.colMenu?' open':'')+' id="colMenu"><summary>Columns · '+visible.length+' of '+TECH_COLS.length+'</summary><div class="menu">'+
   TECH_COLS.map(k=>'<label><input type="checkbox" data-col="'+k+'"'+(state.techCols.includes(k)?' checked':'')+'>'+(k==='market'?'Market':METRICS[k].label)+'</label>').join('')+
   '<div style="display:flex;gap:6px;margin-top:8px"><button class="btn" data-preset="all" style="flex:1">Select all</button><button class="btn" data-cols="none" style="flex:1">Clear</button></div></div></details>';
- return '<section class="section"><div class="sec-head"><div><h2>Technician performance</h2><p class="small">The technician column stays put as you scroll sideways. Heat map ranks each column across the technicians shown — green is stronger, red is weaker, and volume-driven columns (Days Worked, Clocked Hours, Labor Cost, Parts Cost) are left unshaded. Click a name for trend and market rank.</p></div></div>'+
+ return '<section class="section"><div class="sec-head"><div><h2>Technician performance</h2><p class="small">The technician column stays put as you scroll sideways. Heat map ranks each column across the technicians shown — green is stronger, red is weaker, and volume-driven columns (Days Worked, Clocked Hours, Invoiced Hours (Payroll Days), Labor Cost, Parts Cost) are left unshaded. Click a name for trend and market rank.</p></div></div>'+
  '<div class="rangebar"><div class="seg">'+Object.entries(PRESETS).map(([k,p])=>'<button class="'+(state.techPreset===k?'active':'')+'" data-preset="'+k+'">'+p.label+'</button>').join('')+(state.techPreset==='custom'?'<button class="active">Custom</button>':'')+'</div>'+
  menu+toggleBtn('tech',state.heat.tech,'Heat map')+(state.heat.tech?heatLegend():'')+'</div>'+
  '<div class="scroll"><table><thead><tr>'+cols.map(([k,l],i)=>'<th data-sort="'+k+'" class="'+(i===0?'pin txt':k==='market'?'txt':'')+'">'+l+' '+(state.sort.key===k?(state.sort.dir===1?'↑':'↓'):'↕')+'</th>').join('')+'</tr></thead><tbody>'+
@@ -353,7 +363,7 @@ function compareView(){
  (rowsOf.length?'<tfoot><tr><td class="pin txt">Group average</td>'+CMP_COLS.map(k=>'<td>'+num(avg[k],METRICS[k].format)+'</td>').join('')+'</tr>'+
   '<tr><td class="pin txt">Group total</td>'+CMP_COLS.map(k=>'<td>'+num(total[k],METRICS[k].format)+'</td>').join('')+'</tr></tfoot>':'')+
  '</table></div>'+
- (alloc?'':'<p class="small" style="margin-top:8px">Labor, utilization and margin columns need a range of at least a week; widen the range to fill them in.</p>')+
+ (alloc?'':'<p class="small" style="margin-top:8px">Labor, efficiency and margin columns need a range of at least a week; widen the range to fill them in.</p>')+
  '</section>'+
  '<section class="section"><div class="sec-head"><div><h2>'+METRICS[state.cmpMetric].label+' over time</h2><p class="small">'+rangeLabel()+(over>0?' · charting the first 8 selected; '+over+' more are in the table above.':'')+'</p></div>'+
  '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="field">KPI<select class="select" id="cmpMetric">'+metricOpts+'</select></label>'+
@@ -392,12 +402,21 @@ function quality(){
  let missing=state.ops.filter(r=>String(r.normalized_actual_duration_minutes).trim()==='').length,parts=state.ops.reduce((a,r)=>a+n(r.parts_lines_missing_cost),0),bad=[],by=new Map;
  state.ops.forEach(r=>{let a=by.get(r.technician_id)||[];a.push(r);by.set(r.technician_id,a)});
  by.forEach(rs=>{let s=summarize(rs,{alloc:true});if(s.utilization!=null&&(s.utilization>1||s.utilization<.2))bad.push(rs[0].technician_name+': '+num(s.utilization,'percent'))});
+ let opsInfo=new Map;state.ops.forEach(r=>opsInfo.set(r.technician_id,{market:r.market_name,type:r.pt_ft_tagging||''}));
+ let noDrive=new Map;state.labor.forEach(l=>{let c=clockedOf(l);if(!(c>0))return;let e=noDrive.get(l.technician_id)||{id:l.technician_id,name:l.technician_name,weeks:0,missing:[],clock:0,ever:false};e.weeks++;
+  if(numOrNull(l['Normalized Drive Time'])==null){e.missing.push(week(l));e.clock+=c}noDrive.set(l.technician_id,e)});
+ state.labor.forEach(l=>{let e=noDrive.get(l.technician_id);if(e&&numOrNull(l['Normalized Drive Time'])!=null)e.ever=true});
+ let noDriveList=[...noDrive.values()].filter(e=>e.missing.length).map(e=>Object.assign(e,opsInfo.get(e.id)||{market:'—',type:''})).sort((a,b)=>b.clock-a.clock);
+ let noDriveTable=noDriveList.length?'<div class="scroll" style="margin:6px 0 4px"><table><thead><tr><th class="pin txt">Technician</th><th class="txt">Market</th><th class="txt">PT/FT</th><th>Weeks missing</th><th>Clocked hrs affected</th><th class="txt">Drive time in other weeks</th><th class="txt">Weeks missing drive time</th></tr></thead><tbody>'+
+  noDriveList.map(e=>'<tr><td class="pin txt">'+esc(e.name)+'</td><td class="txt">'+esc(e.market)+'</td><td class="txt">'+esc(e.type||'—')+'</td><td>'+e.missing.length+' of '+e.weeks+'</td><td>'+num(e.clock,'hours')+'</td><td class="txt">'+(e.ever?'Yes':'Never')+'</td><td class="txt">'+e.missing.sort().map(fmtDate).join(', ')+'</td></tr>').join('')+
+  '</tbody></table></div>':'';
  return '<section class="section"><h2>Data quality & coverage</h2><p class="warn">Parts-cost gaps can overstate gross margin.</p><ul class="small">'+
  '<li><b>Operations without labor:</b> '+([...noLabor.values()].map(x=>esc(x.name)+' ('+[...x.markets].join(', ')+')').join('; ')||'None')+'</li>'+
  '<li><b>Missing normalized wrench time:</b> '+missing+' daily rows (treated as null).</li>'+
  '<li><b>Parts lines missing cost:</b> '+parts+'.</li>'+
  '<li><b>Weeks allocated at week level due to zero worked days:</b> '+state.allocated.filter(x=>x.fallback).length+' allocations.</li>'+
- '<li><b>Likely utilization exceptions:</b> '+(bad.join('; ')||'None')+'.</li></ul>'+
+ '<li><b>Likely efficiency exceptions:</b> '+(bad.join('; ')||'None')+'.</li>'+
+ '<li><b>Clocked hours but no drive time:</b> '+(noDriveList.length?noDriveList.length+' technicians, '+noDriveList.reduce((a,e)=>a+e.missing.length,0)+' technician-weeks. Drive time counts as 0 in these weeks, so Total Technician Efficiency is understated.':'None.')+noDriveTable+'</li></ul>'+
  '<p class="small">Labor is evenly allocated across worked days. If none exist in a labor week, it remains attributed to the technician\'s most frequent market rather than being dropped.</p></section>'}
 function detail(id){let rs=selectedRows({tech:id}),s=summarize(rs),market=rs[0]&&rs[0].market_name,
  all=[...new Map(selectedRows({market,ignoreTechs:true}).map(r=>[r.technician_id,r.technician_id])).values()].map(t=>summarize(selectedRows({tech:t,market}))),
