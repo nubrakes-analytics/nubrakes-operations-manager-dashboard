@@ -40,8 +40,11 @@ select{cursor:pointer}
 .compare{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:10px;color:var(--soft)}
 .delta{font-size:11px;font-weight:600}
 .delta.goal-pos{color:#047857}.delta.goal-neg{color:#be123c}
-.spark-wrap{display:flex;align-items:center;gap:7px;height:34px;margin:4px 0 2px}
-.sparkline{display:block;width:100%;height:32px}
+.spark-wrap{display:flex;align-items:center;gap:7px;height:34px;margin:4px 0 2px;position:relative}
+.sparkline{display:block;width:100%;height:32px;cursor:crosshair}
+.spark-tip{position:absolute;bottom:calc(100% + 4px);transform:translateX(-50%);background:var(--dark);color:#fff;border-radius:6px;padding:4px 8px;font-size:11px;line-height:1.35;white-space:nowrap;pointer-events:none;z-index:5;box-shadow:0 4px 12px rgba(15,23,42,.18)}
+.spark-tip b{display:block;font-weight:700;font-variant-numeric:tabular-nums}
+.spark-tip span{color:#cbd5e1;font-size:10px}
 .spark-caption{flex:0 0 auto;font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;writing-mode:vertical-rl;transform:rotate(180deg)}
 .section{padding:16px 18px;margin-bottom:16px}
 .section>.small{margin-top:2px;margin-bottom:14px}
@@ -439,20 +442,41 @@ function sparkSeries(key){let endKey=activePeriodKey(),keys=periodKeys().filter(
  base=state.ops.filter(r=>(state.market==='All Markets'||r.market_name===state.market)&&empOK(r)&&(!state.techs.length||state.techs.includes(r.technician_id))),
  bucket=r=>state.period==='day'?day(r):state.period==='week'?week(r):day(r).slice(0,7);
  return{keys,values:keys.map(k=>{let rs=base.filter(r=>bucket(r)===k),last=rs.map(day).sort().at(-1),opts=state.period==='month'&&last?{pace:last,noCache:true}:{noCache:true};return summarize(rs,opts)[key]})}}
-function drawSparklines(){if(state.tab!=='market')return;
- document.querySelectorAll('.sparkline').forEach(canvas=>{let key=canvas.dataset.spark,s=sparkSeries(key),keys=s.keys,values=s.values,
+function sparkPeriod(k){if(state.period==='month')return new Date(k+'-01T12:00:00').toLocaleDateString(undefined,{month:'short',year:'numeric'});if(state.period==='week')return 'Week of '+fmtDateY(k);return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+function paintSpark(canvas,s,hover){let key=canvas.dataset.spark,keys=s.keys,values=s.values,
   finite=values.filter(Number.isFinite),ratio=window.devicePixelRatio||1,w=Math.max(100,canvas.clientWidth),h=32;
   canvas.width=w*ratio;canvas.height=h*ratio;let ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.clearRect(0,0,w,h);
   ctx.strokeStyle='#eef2f7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,h-4);ctx.lineTo(w,h-4);ctx.stroke();
-  if(!finite.length){ctx.fillStyle='#9ca3af';ctx.font='10px system-ui';ctx.fillText('No trend data',2,19);return}
+  if(!finite.length){ctx.fillStyle='#9ca3af';ctx.font='10px system-ui';ctx.fillText('No trend data',2,19);return null}
   let min=Math.min(...finite),max=Math.max(...finite),spread=max-min||Math.abs(max)||1,
   x=i=>keys.length===1?w/2:i*(w-4)/(keys.length-1)+2,y=v=>h-5-(v-min)/spread*(h-10),
   color=key==='variance'?(finite.at(-1)>=0?'#047857':'#be123c'):'#4a3aa7';
+  if(hover!=null){ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x(hover),1);ctx.lineTo(x(hover),h-4);ctx.stroke()}
   ctx.strokeStyle=color;ctx.lineWidth=1.75;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();let drawing=false;
   values.forEach((v,i)=>{if(!Number.isFinite(v)){drawing=false;return}if(!drawing){ctx.moveTo(x(i),y(v));drawing=true}else ctx.lineTo(x(i),y(v))});ctx.stroke();
+  let dot=(i,r)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(x(i),y(values[i]),r,0,Math.PI*2);ctx.fill()};
   let lastIndex=values.findLastIndex(Number.isFinite);
-  if(lastIndex>=0){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x(lastIndex),y(values[lastIndex]),2.6,0,Math.PI*2);ctx.fill()}
-  canvas.title=METRICS[key].label+': '+keys[0]+' to '+keys.at(-1)})}
+  if(lastIndex>=0&&hover!==lastIndex)dot(lastIndex,2.6);
+  if(hover!=null&&Number.isFinite(values[hover])){dot(hover,3.6);ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()}
+  return{x,w}}
+function drawSparklines(){if(state.tab!=='market')return;
+ document.querySelectorAll('.sparkline').forEach(canvas=>{let key=canvas.dataset.spark,m=METRICS[key],s=sparkSeries(key),geo=paintSpark(canvas,s,null),wrap=canvas.parentElement;
+  canvas.removeAttribute('title');
+  if(!geo||!s.keys.length)return;
+  let tip=document.createElement('div');tip.className='spark-tip hidden';tip.setAttribute('role','tooltip');wrap.appendChild(tip);
+  let show=i=>{let g=paintSpark(canvas,s,i),last=i===s.keys.length-1&&bounds().max<(state.period==='month'?s.keys[i]+'-31':state.period==='week'?shiftDays(s.keys[i],6):s.keys[i]);
+    tip.innerHTML='<b>'+num(s.values[i],m.format)+'</b><span>'+esc(sparkPeriod(s.keys[i]))+(last?' · to date':'')+'</span>';
+    tip.classList.remove('hidden');let left=canvas.offsetLeft+g.x(i),half=tip.offsetWidth/2,maxL=wrap.clientWidth-half;
+    tip.style.left=Math.max(half,Math.min(maxL,left))+'px'};
+  let hide=()=>{tip.classList.add('hidden');paintSpark(canvas,s,null)};
+  let pick=clientX=>{let r=canvas.getBoundingClientRect(),px=clientX-r.left,best=0,bd=Infinity;
+    s.keys.forEach((_,i)=>{let d=Math.abs(geo.x(i)-px);if(d<bd){bd=d;best=i}});return best};
+  canvas.onmousemove=e=>show(pick(e.clientX));canvas.onmouseleave=hide;
+  canvas.ontouchstart=e=>{show(pick(e.touches[0].clientX))};canvas.ontouchend=()=>setTimeout(hide,1500);
+  canvas.tabIndex=0;let cur=s.keys.length-1;
+  canvas.onfocus=()=>show(cur);canvas.onblur=hide;
+  canvas.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){cur=Math.max(0,Math.min(s.keys.length-1,cur+(e.key==='ArrowLeft'?-1:1)));show(cur);e.preventDefault()}};
+  canvas.setAttribute('aria-label',m.label+' trend: '+s.keys.map((k,i)=>sparkPeriod(k)+' '+num(s.values[i],m.format)).join(', '))})}
 
 /* ---------- wiring ---------- */
 function on(sel,ev,fn){let el=document.querySelector(sel);if(el)el[ev]=fn}
