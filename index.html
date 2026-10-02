@@ -165,7 +165,7 @@ const SERIES=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3a
 const RANGES=[['period','Selected period'],['l30','Last 30 days'],['l90','Last 90 days'],['l180','Last 6 months'],['ytd','Year to date'],['all','All data'],['custom','Custom']];
 const GRAINS=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
 const state={ops:[],labor:[],allocated:[],allocIndex:new Map,region:'all',market:'All Markets',employment:'all',status:'active',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
- trendMetric:'revenue',granularity:'daily',range:{mode:'period',start:'',end:''},trendLabels:true,
+ trendMetric:'revenue',granularity:'daily',range:{mode:'period',start:'',end:''},trendLabels:true,trendSplit:true,
  heat:{tech:true,market:true,compare:true},techPreset:'all',techCols:PRESETS.all.cols.slice(),colMenu:false,
  cmpMode:'tech',cmpTechs:[],cmpMarkets:[],cmpMetric:'avgTicket',cmpLabels:false,cmpDelta:false,cmpColors:{},cmpSeeded:false,
  cache:new Map(),detail:null};
@@ -388,7 +388,32 @@ function trendView(){
  return '<section class="section"><div class="sec-head"><div><h2>'+METRICS[state.trendMetric].label+'</h2><p class="small">'+rangeLabel()+' · '+GRAINS.find(g=>g[0]===state.granularity)[1].toLowerCase()+' buckets'+(state.granularity==='daily'&&METRICS[state.trendMetric].requiresLabor?' · labor-based KPIs are blank at daily granularity because payroll arrives weekly':'')+'</p></div>'+
  '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="field">KPI<select class="select" id="trendMetric">'+available.map(k=>'<option value="'+k+'"'+(k===state.trendMetric?' selected':'')+'>'+METRICS[k].label+'</option>').join('')+'</select></label>'+
  '<div class="seg">'+GRAINS.map(([k,l])=>'<button class="'+(state.granularity===k?'active':'')+'" data-gran="'+k+'">'+l+'</button>').join('')+'</div>'+toggleBtn('trendLabels',state.trendLabels,'Data labels')+'</div></div>'+
- rangeControl()+'<div class="chart-wrap"><canvas id="trendChart"></canvas></div><div id="trendFallback" class="hidden"></div></section>'}
+ rangeControl()+
+ '<div class="rangebar">'+(state.techs.length
+  ?'<div class="seg">'+[[false,'Combined'],[true,'Compare technicians']].map(([k,l])=>'<button class="'+(state.trendSplit===k?'active':'')+'" data-split="'+k+'">'+l+'</button>').join('')+'</div><span class="chip">'+state.techs.length+' technician'+(state.techs.length>1?'s':'')+' selected</span>'
+  :'<span class="small">Pick technicians in the toolbar\'s Technicians filter to compare them here, one line each.</span>')+'</div>'+
+ '<div class="chart-wrap"><canvas id="trendChart"></canvas></div><div id="trendFallback" class="hidden"></div>'+trendSplitTable()+'</section>'}
+const trendSplitOn=()=>state.trendSplit&&state.techs.length>0;
+function trendTechSeries(){let{start,end}=rangeDates(),g=state.granularity,k=state.trendMetric,
+ keys=[...bucketize(filterRows(start,end),g).keys()].sort();
+ return{keys,series:state.techs.map((id,i)=>{let rows=filterRows(start,end,{tech:id}),b=bucketize(rows,g);
+  return{id,label:techNameOf(id),color:SERIES[i%SERIES.length],rows,
+   data:keys.map(x=>b.has(x)?summarize(b.get(x),{alloc:g!=='daily',noCache:true})[k]:null)}})}}
+function trendSplitTable(){
+ if(!trendSplitOn())return '';
+ let m=METRICS[state.trendMetric],{keys,series}=trendTechSeries(),alloc=rangeAlloc(),
+ lastK=keys.at(-1),g=state.granularity,lastEnd=g==='monthly'?new Date(Date.UTC(+lastK.slice(0,4),+lastK.slice(5,7),0)).toISOString().slice(0,10):shiftDays(lastK,6),partial=g!=='daily'&&keys.length>1&&lastEnd>bounds().max,
+ data=series.map(s=>{let d=partial?s.data.slice(0,-1):s.data,f=d.filter(Number.isFinite),total=summarize(s.rows,{alloc,noCache:true})[state.trendMetric],latest=d.findLast(Number.isFinite),first=d.find(Number.isFinite);
+  return{label:s.label,color:s.color,total,avg:f.length?f.reduce((a,b)=>a+b,0)/f.length:null,best:f.length?(m.dir<0?Math.min(...f):Math.max(...f)):null,worst:f.length?(m.dir<0?Math.max(...f):Math.min(...f)):null,latest:latest??null,change:latest!=null&&first!=null&&f.length>1?latest-first:null,buckets:f.length}}),
+ heat=k=>data.map(x=>x[k]),bucket={daily:'day',weekly:'week',monthly:'month'}[state.granularity];
+ data.sort((a,b)=>m.dir*((b.total??-Infinity)-(a.total??-Infinity))||0);
+ let cols=[['total','Selected range'],['avg','Avg per '+bucket],['best','Best '+bucket],['worst','Weakest '+bucket],['latest','Latest '+bucket],['change','Change first → latest']];
+ return '<div class="scroll" style="margin-top:14px"><table><thead><tr><th class="pin txt">Technician</th>'+cols.map(c=>'<th>'+c[1]+'</th>').join('')+'<th>Active '+bucket+'s</th></tr></thead><tbody>'+
+  data.map(x=>'<tr><td class="pin txt"><span style="display:inline-block;width:8px;height:8px;border-radius:999px;margin-right:7px;background:'+x.color+'"></span>'+esc(x.label)+'</td>'+
+   cols.map(([k])=>{let bg=k!=='change'?heatBg(x[k],heat(k),m.dir):'',v=x[k],
+    txt=k==='change'&&v!=null?'<span style="color:'+((v*(m.dir||1))>=0?'#047857':'#be123c')+'">'+(v>=0?'+':'')+num(v,m.format)+'</span>':num(v,m.format);
+    return '<td class="'+(bg?'heat':'')+'" style="'+bg+'">'+txt+'</td>'}).join('')+'<td>'+x.buckets+' of '+(keys.length-(partial?1:0))+'</td></tr>').join('')+
+ '</tbody></table></div><p class="small" style="margin-top:6px">Ranked by '+m.label+' over the selected range'+(m.dir<0?' (lower is better)':'')+'.'+(partial?' The in-progress '+bucket+' ('+bucketLabel(lastK,g)+') is charted but left out of the per-'+bucket+' columns.':'')+' Each technician\'s rows only — the market filter still applies.'+(alloc||!m.requiresLabor?'':' Labor-based values need a range of at least a week.')+'</p>'}
 
 /* ---------- goals, definitions, quality, detail ---------- */
 function goalsView(){let months=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].slice(-4),markets=[...new Set(state.ops.map(r=>r.market_name))].sort();
@@ -447,6 +472,13 @@ function drawTrend(){
  let fb=document.querySelector('#trendFallback');
  if(!window.Chart){fb.classList.remove('hidden');fb.innerHTML='<div class="scroll"><table class="fallback"><tr><th>Period</th><th>'+m.label+'</th></tr>'+keys.map((x,i)=>'<tr><td>'+bucketLabel(x,g)+'</td><td>'+num(vals[i],m.format)+'</td></tr>').join('')+'</table></div>';return}
  fb.classList.add('hidden');trendChart&&trendChart.destroy();
+ if(trendSplitOn()){let t=trendTechSeries(),charted=t.series.slice(0,8),bar=g!=='daily'&&t.keys.length<=14&&charted.length<=4;
+  trendChart=new Chart(document.querySelector('#trendChart'),{type:bar?'bar':'line',plugins:[valueLabels],
+   data:{labels:t.keys.map(k=>bucketLabel(k,g)),datasets:charted.map(s=>({label:s.label,data:s.data,borderColor:s.color,backgroundColor:bar?s.color:'transparent',
+    borderWidth:2,borderRadius:4,borderSkipped:false,categoryPercentage:.78,barPercentage:.86,fill:false,tension:.25,spanGaps:true,
+    pointRadius:t.keys.length>40?0:3,pointHoverRadius:6,pointBackgroundColor:s.color,pointBorderColor:'#fff',pointBorderWidth:1.5}))},
+   options:Object.assign(axisOpts(m.format),{plugins:{legend:{display:true,position:'top',align:'start',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle',color:'#374151',font:{size:11}}},
+    valueLabels:{show:state.trendLabels,format:m.format},tooltip:{callbacks:{label:c=>c.dataset.label+': '+num(c.parsed.y,m.format)}}}})});return}
  let bar=g!=='daily';
  trendChart=new Chart(document.querySelector('#trendChart'),{type:bar?'bar':'line',plugins:[valueLabels],
   data:{labels:keys.map(k=>bucketLabel(k,g)),datasets:[{label:m.label,data:vals,borderColor:'#4a3aa7',backgroundColor:bar?'#4a3aa7':'rgba(74,58,167,.12)',
@@ -552,6 +584,7 @@ function wire(){
  document.querySelectorAll('[data-cmp]').forEach(x=>x.onclick=()=>{let id=x.dataset.cmp,list=state.cmpMode==='market'?state.cmpMarkets:state.cmpTechs,i=list.indexOf(id);
   if(i>=0){list.splice(i,1);delete state.cmpColors[id]}else{list.push(id);cmpColor(id)}render()});
  on('#cmpMetric','onchange',e=>{state.cmpMetric=e.target.value;render()});
+ document.querySelectorAll('[data-split]').forEach(x=>x.onclick=()=>{state.trendSplit=x.dataset.split==='true';render()});
  on('#trendMetric','onchange',e=>{state.trendMetric=e.target.value;render()});
  on('#quality','onclick',()=>document.querySelector('#qualityPanel').classList.toggle('hidden'));
  document.querySelectorAll('[data-goal]').forEach(x=>x.onchange=e=>{state.goals[e.target.dataset.goal]=n(e.target.value);state.cache.clear()});
