@@ -164,7 +164,7 @@ const REGIONS=[['all','All'],['Texas','Texas'],['East','East']];
 const SERIES=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#4a3aa7','#e34948'];
 const RANGES=[['period','Selected period'],['l30','Last 30 days'],['l90','Last 90 days'],['l180','Last 6 months'],['ytd','Year to date'],['all','All data'],['custom','Custom']];
 const GRAINS=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
-const state={ops:[],labor:[],allocated:[],allocIndex:new Map,region:'all',market:'All Markets',employment:'all',status:'active',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
+const state={ops:[],labor:[],allocated:[],allocIndex:new Map,region:'all',market:'All Markets',employment:'all',status:'active',vioc:'include',period:'month',periodKey:'',techs:[],tab:'market',sort:{key:'revenue',dir:-1},goals:{},
  trendMetric:'revenue',granularity:'daily',range:{mode:'period',start:'',end:''},trendLabels:true,trendSplit:true,
  heat:{tech:true,market:true,compare:true},techPreset:'all',techCols:PRESETS.all.cols.slice(),colMenu:false,
  cmpMode:'tech',cmpTechs:[],cmpMarkets:[],cmpMetric:'avgTicket',cmpLabels:false,cmpDelta:false,cmpColors:{},cmpSeeded:false,
@@ -199,7 +199,10 @@ const mktOK=m=>regionOK(m)&&(state.market==='All Markets'||m===state.market);
 function regionMarkets(){return [...new Set(state.ops.map(r=>r.market_name))].filter(regionOK).sort()}
 const isActiveTech=r=>r.technician_is_active===true||String(r.technician_is_active).toLowerCase()==='true';
 const statusOK=r=>state.status==='all'||(state.status==='active')===isActiveTech(r);
-const empOK=r=>(state.employment==='all'||r.pt_ft_tagging===state.employment)&&statusOK(r);
+/* VIOC Inspection split: each tech-day can carry a VIOC row and a non-VIOC row (is_vioc_inspection), so excluding is a row filter. */
+const isVioc=r=>r.is_vioc_inspection===true||String(r.is_vioc_inspection).toLowerCase()==='true';
+const viocOK=r=>state.vioc==='include'||!isVioc(r);
+const empOK=r=>(state.employment==='all'||r.pt_ft_tagging===state.employment)&&statusOK(r)&&viocOK(r);
 function filterRows(start,end,o={}){let mk=o.market||state.market;return state.ops.filter(r=>{let d=day(r);if(d<start||d>end)return false;if(mk==='All Markets'?!regionOK(r.market_name):r.market_name!==mk)return false;if(!empOK(r))return false;if(o.tech)return r.technician_id===o.tech;if(!o.ignoreTechs&&state.techs.length&&!state.techs.includes(r.technician_id))return false;return true})}
 function selectedRows(extra={}){let{start,end}=dates();return filterRows(start,end,extra)}
 function priorRows(){let d=dates(),len=spanDays(d.start,d.end),end=shiftDays(d.start,-1),start=shiftDays(end,-(len-1));return filterRows(start,end)}
@@ -228,7 +231,7 @@ function summarize(rows,opts={}){
   clockedHours:hoursOK?clock:null,regularHours:hoursOK?hsum('regular'):null,overtimeHours:hoursOK?hsum('overtime'):null,holidayHours:hoursOK?hsum('holiday'):null,ptoHours:hoursOK?hsum('pto'):null,driveHours:hoursOK?drive:null,laborCost:laborOK?lc:null,payrollInvoicedHours:hoursOK?payrollInv:null,utilization:hoursOK&&clock?payrollInv/clock:null,totalEfficiency:hoursOK&&clock?(drive+payrollInv)/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,
   grossProfit:gp,grossMargin:laborOK&&revenue?gp/revenue:null,grossPerJob:laborOK&&jobs?gp/jobs:null,grossPerTech:laborOK&&active?gp/active:null,
   daysWorked,coverage:cov,partialLabor:laborOK&&!cov.complete};
- if(opts.pace){let mon=opts.pace.slice(0,7),allMonth=state.ops.filter(r=>day(r).slice(0,7)===mon&&mktOK(r.market_name)),
+ if(opts.pace){let mon=opts.pace.slice(0,7),allMonth=state.ops.filter(r=>day(r).slice(0,7)===mon&&mktOK(r.market_name)&&viocOK(r)),
   business=new Set(allMonth.filter(r=>n(r.worked_day_flag)).map(day)).size,elapsed=workedDays.size;
   out.revenuePace=elapsed?revenue/elapsed*business:null;out.jobsPace=elapsed?jobs/elapsed*business:null;
   out.goal=state.market==='All Markets'?regionMarkets().reduce((a,m)=>a+(state.goals[m+'|'+mon]??goalDefault(m,mon)),0):(state.goals[state.market+'|'+mon]??goalDefault(state.market,mon));
@@ -242,7 +245,7 @@ function allocate(){let byTW=new Map;state.ops.forEach((r,i)=>{r._key=i;let k=r.
   pool.forEach(r=>state.allocated.push({_key:r._key,technician_id:l.technician_id,market_name:market,hours:n(clockedOf(l))/pool.length,hasHours:clockedOf(l)!=null,regular:n(numOrNull(l.Regular))/pool.length,overtime:n(numOrNull(l.Overtime))/pool.length,holiday:n(numOrNull(l.Holiday))/pool.length,pto:n(numOrNull(l['Paid Time Off']))/pool.length,cost:n(l['Total Employer Cost'])/pool.length,week:week(l),fallback:!worked.length}))});
  state.allocIndex=new Map;state.allocated.forEach(a=>{(state.allocIndex.get(a._key)||state.allocIndex.set(a._key,[]).get(a._key)).push(a)})}
 function goalDefault(m,mon){let past=[...new Set(state.ops.map(day).map(x=>x.slice(0,7)))].filter(x=>x<mon).slice(-3);
- let vals=past.map(x=>summarize(state.ops.filter(r=>r.market_name===m&&day(r).slice(0,7)===x),{noCache:true,alloc:true}).revenue);
+ let vals=past.map(x=>summarize(state.ops.filter(r=>r.market_name===m&&day(r).slice(0,7)===x&&viocOK(r)),{noCache:true,alloc:true}).revenue);
  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0}
 
 /* ---------- heat map ---------- */
@@ -261,14 +264,14 @@ function toggleBtn(id,on,label){return '<button class="toggle" data-toggle="'+id
 function controls(){
  let markets=regionMarkets(),
  techOptions=state.ops.filter(r=>mktOK(r.market_name)&&empOK(r)).reduce((a,r)=>(a.set(r.technician_id,r.technician_name),a),new Map()),
- hasEmp=state.ops.some(r=>r.pt_ft_tagging),hasStatus=state.ops.some(r=>r.technician_is_active!=null),
- statusCount=t=>new Set(state.ops.filter(r=>mktOK(r.market_name)&&(state.employment==='all'||r.pt_ft_tagging===state.employment)&&(t==='all'||(t==='active')===isActiveTech(r))).map(r=>r.technician_id)).size,
- empCount=t=>new Set(state.ops.filter(r=>mktOK(r.market_name)&&statusOK(r)&&(t==='all'||r.pt_ft_tagging===t)).map(r=>r.technician_id)).size,
+ hasEmp=state.ops.some(r=>r.pt_ft_tagging),hasStatus=state.ops.some(r=>r.technician_is_active!=null),hasVioc=state.ops.some(r=>r.is_vioc_inspection!=null),
+ statusCount=t=>new Set(state.ops.filter(r=>mktOK(r.market_name)&&viocOK(r)&&(state.employment==='all'||r.pt_ft_tagging===state.employment)&&(t==='all'||(t==='active')===isActiveTech(r))).map(r=>r.technician_id)).size,
+ empCount=t=>new Set(state.ops.filter(r=>mktOK(r.market_name)&&statusOK(r)&&viocOK(r)&&(t==='all'||r.pt_ft_tagging===t)).map(r=>r.technician_id)).size,
  cov=coverage(selectedRows()),range=dates(),selectedKey=activePeriodKey(),keys=periodKeys().reverse(),
  note=cov.matched+'/'+cov.active+' active technicians have matching labor'+(cov.complete?'. Coverage is complete.':'. Uncovered labor is excluded, so Labor Cost may be understated and Simple Gross Profit and Margin may be overstated.'),
  periodNote=state.period==='week'?'<div class="notice small"><strong>Weekly labor uses the native weekly feed.</strong> '+note+'</div>':state.period==='month'?'<div class="notice small"><strong>Monthly labor is estimated from weekly payroll.</strong> Each technician\'s weekly hours and employer cost are split evenly across their worked days in that Thursday-start week, then only days inside this month are included. '+note+'</div>':'';
  return '<div class="top"><div><h1 class="title">NuBrakes Operations Manager Dashboard</h1><p class="subtitle">'+fmtDate(range.start)+(range.start===range.end?'':' – '+fmtDate(range.end))+' · Market performance, technician coaching, and auditable margin</p></div>'+
- '<div class="status-row"><span class="badge live"><i class="badge-dot"></i>Live Data</span><span class="coverage">Labor coverage: '+cov.matched+'/'+cov.active+' active techs</span></div></div>'+
+ '<div class="status-row"><span class="badge live"><i class="badge-dot"></i>Live Data</span><span class="coverage">Labor coverage: '+cov.matched+'/'+cov.active+' active techs</span>'+(state.vioc==='exclude'?'<span class="chip">Excluding VIOC Inspections</span>':'')+'</div></div>'+
  '<div class="toolbar"><label class="field">View by<select class="select" id="period">'+[['month','Month'],['week','Week'],['day','Day']].map(([v,l])=>'<option value="'+v+'"'+(state.period===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
  '<label class="field">Select '+state.period+'<select class="select" id="periodKey">'+keys.map(k=>'<option value="'+k+'"'+(k===selectedKey?' selected':'')+'>'+periodLabel(k)+'</option>').join('')+'</select></label>'+
  '<label class="field">Region<select class="select" id="region">'+REGIONS.map(([k,l])=>'<option value="'+k+'"'+(state.region===k?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
@@ -276,6 +279,7 @@ function controls(){
  (hasStatus?'<label class="field">Status<select class="select" id="status">'+[['active','Active techs'],['inactive','Inactive techs'],['all','All techs']].map(([v,l])=>'<option value="'+v+'"'+(state.status===v?' selected':'')+'>'+l+' ('+statusCount(v)+')</option>').join('')+'</select></label>':'')+
  (hasEmp?'<label class="field">Employment<select class="select" id="employment">'+[['all','All techs'],['FT','Full-time'],['PT','Part-time']].map(([v,l])=>'<option value="'+v+'"'+(state.employment===v?' selected':'')+'>'+l+' ('+empCount(v)+')</option>').join('')+'</select></label>':'')+
  '<label class="field">Technicians<select class="select" id="techs" multiple size="1">'+[...techOptions].map(([id,name])=>'<option value="'+id+'"'+(state.techs.includes(id)?' selected':'')+'>'+esc(name)+'</option>').join('')+'</select></label>'+
+ '<label class="field">Jobs<select class="select" id="vioc"'+(hasVioc?'':' disabled title="The operations feed has no is_vioc_inspection column yet"')+'>'+[['include','All Jobs – Including VIOC Inspections'],['exclude','All Jobs – Excluding VIOC Inspections']].map(([v,l])=>'<option value="'+v+'"'+(state.vioc===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
  (state.techs.length?'<button class="btn" id="clearTechs">Clear '+state.techs.length+' technician'+(state.techs.length>1?'s':'')+'</button>':'')+'</div>'+periodNote+
  '<nav class="tabs">'+[['market','Market Performance'],['tech','Technician Performance'],['compare','Compare'],['trend','Trend Analysis'],['goals','Goals'],['definitions','Definitions']].map(([k,l])=>'<button class="'+(state.tab===k?'active':'')+'" data-tab="'+k+'">'+l+'</button>').join('')+'<button id="quality">Data Quality</button></nav>'}
 
@@ -557,6 +561,11 @@ function wire(){
   state.techs=state.techs.filter(id=>ok.has(id));
   state.cmpTechs=state.cmpTechs.filter(id=>{if(ok.has(id))return true;delete state.cmpColors[id];return false});
   render()});
+ on('#vioc','onchange',e=>{state.vioc=e.target.value;
+  let ok=new Set(state.ops.filter(empOK).map(r=>r.technician_id));
+  state.techs=state.techs.filter(id=>ok.has(id));
+  state.cmpTechs=state.cmpTechs.filter(id=>{if(ok.has(id))return true;delete state.cmpColors[id];return false});
+  render()});
  on('#status','onchange',e=>{state.status=e.target.value;
   let ok=new Set(state.ops.filter(empOK).map(r=>r.technician_id));
   state.techs=state.techs.filter(id=>ok.has(id));
@@ -609,6 +618,7 @@ async function load(){try{
  state.ops=res[0];state.labor=res[1];
  if(!state.ops.some(r=>r.pt_ft_tagging))state.employment='all';
  if(!state.ops.some(r=>r.technician_is_active!=null))state.status='all';
+ if(!state.ops.some(r=>r.is_vioc_inspection!=null))state.vioc='include';
  allocate();render()}
 catch(e){document.querySelector('#app').innerHTML='<div class="notice"><h2>Unable to load dashboard data</h2><p>Failed feed: '+esc(String(e))+'. Check your connection and retry. Operations URL: '+OPS_URL+'; Labor URL: '+LABOR_URL+'</p><button class="btn" onclick="location.reload()">Retry</button></div>'}}
 load();
