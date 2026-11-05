@@ -124,9 +124,9 @@ const METRICS={
  jobs:{key:'jobs',label:'Jobs Completed',format:'number',dir:1,formula:'Σ completed_jobs_count',fields:'completed_jobs_count',description:''},
  jobsPace:{key:'jobsPace',label:'Jobs Pace',format:'number',dir:1,formula:'MTD jobs ÷ elapsed business days × business days in month',fields:'completed_jobs_count, worked_day_flag',description:''},
  avgTicket:{key:'avgTicket',label:'Average Ticket',format:'currency',dir:1,formula:'Σ revenue_amount ÷ Σ invoiced_jobs_count',fields:'revenue_amount, invoiced_jobs_count',description:'Ratio of summed components, not an average of averages.'},
- bookedAov:{key:'bookedAov',label:'Booked AOV',format:'currency',dir:1,formula:'Σ booked_revenue_amount ÷ Σ completed_jobs_count',fields:'booked_revenue_amount, completed_jobs_count',description:'Booked revenue per completed job. Ratio of summed components; blank when no jobs were completed.'},
- bookedRpj:{key:'bookedRpj',label:'Booked RPJ',format:'number',dir:1,formula:'Σ booked_repairs_count ÷ Σ completed_jobs_count',fields:'booked_repairs_count, completed_jobs_count',description:'Booked repairs per completed job. Ratio of summed components; blank when no jobs were completed.'},
- bookedRotor:{key:'bookedRotor',label:'Booked Rotor',format:'number',dir:0,formula:'Σ booked_rotor_attached_jobs_count',fields:'booked_rotor_attached_jobs_count',description:'Count of booked jobs with rotors attached. Volume-driven, so it is not heat-shaded.'},
+ bookedAov:{key:'bookedAov',label:'Booked AOV',format:'currency',dir:1,formula:'Σ booked_revenue_with_estimate ÷ Σ booked_jobs_with_estimate',fields:'booked_revenue_with_estimate, booked_jobs_with_estimate',description:'Booked revenue with an estimate per booked job with an estimate. Ratio of summed components; blank when no booked jobs have an estimate.'},
+ bookedRpj:{key:'bookedRpj',label:'Booked RPJ',format:'number',dir:1,formula:'Σ booked_repairs_count ÷ Σ booked_jobs_with_estimate',fields:'booked_repairs_count, booked_jobs_with_estimate',description:'Booked repairs per booked job with an estimate. Ratio of summed components; blank when no booked jobs have an estimate.'},
+ bookedRotor:{key:'bookedRotor',label:'Booked Rotor %',format:'percent',dir:1,formula:'Σ booked_rotor_attached_jobs_count ÷ Σ booked_jobs_with_estimate',fields:'booked_rotor_attached_jobs_count, booked_jobs_with_estimate',description:'Share of booked jobs with an estimate that have rotors attached. Ratio of summed components; blank when no booked jobs have an estimate.'},
  ticketCompletion:{key:'ticketCompletion',label:'Ticket Completion Rate',format:'percent',dir:1,formula:'Σ revenue_amount ÷ Σ booked_revenue_amount',fields:'revenue_amount, booked_revenue_amount',description:'Completed revenue against the revenue booked on the ticket. Above 100% means work completed on site came in above what was booked.'},
  rotorAttach:{key:'rotorAttach',label:'Rotor Attachment Rate',format:'percent',dir:1,formula:'Σ rotor_attached_jobs_count ÷ Σ rotor_eligible_jobs_count',fields:'rotor_attached_jobs_count, rotor_eligible_jobs_count',description:'Eligible jobs only; jobs with no rotor opportunity are excluded from the denominator.'},
  serviceRate:{key:'serviceRate',label:'Service Call Rate',format:'percent',dir:-1,formula:'Σ service_call_jobs_count ÷ Σ completed_jobs_count',fields:'service_call_jobs_count, completed_jobs_count',description:'Denominator is completed jobs, not invoiced jobs. Lower is better.'},
@@ -218,7 +218,7 @@ function summarize(rows,opts={}){
  let sig=opts.noCache?'':JSON.stringify([rows.map(r=>r._key),opts.goal||0,alloc,opts.pace||'']);
  if(sig&&state.cache.has(sig))return state.cache.get(sig);
  let L=laborFor(rows),cov=coverage(rows),sum=f=>rows.reduce((a,r)=>a+n(r[f]),0),lsum=f=>L.reduce((a,r)=>a+n(r[f]),0),
- revenue=sum('revenue_amount'),booked=sum('booked_revenue_amount'),jobs=sum('completed_jobs_count'),invoiced=sum('invoiced_jobs_count'),
+ revenue=sum('revenue_amount'),booked=sum('booked_revenue_amount'),bookedEstimateJobs=sum('booked_jobs_with_estimate'),jobs=sum('completed_jobs_count'),invoiced=sum('invoiced_jobs_count'),
  rotorElig=sum('rotor_eligible_jobs_count'),rotorAtt=sum('rotor_attached_jobs_count'),
  active=cov.active,clock=lsum('hours'),lc=lsum('cost'),parts=sum('parts_cost_amount'),
  allocatedAvailable=alloc&&cov.matched>0,laborOK=active>0&&(cov.complete||allocatedAvailable);
@@ -228,7 +228,7 @@ function summarize(rows,opts={}){
  hoursOK=laborOK&&HL.length>0,drive=.9*payrollRows.reduce((a,r)=>a+n(r['Normalized Drive Time']),0);
  let workedDays=new Set(rows.filter(r=>n(r.worked_day_flag)).map(day)),daysWorked=sum('worked_day_flag');
  let gp=laborOK?revenue-lc-parts:null;
- let out={revenue,jobs,bookedAov:jobs?booked/jobs:null,bookedRpj:jobs?sum('booked_repairs_count')/jobs:null,bookedRotor:sum('booked_rotor_attached_jobs_count'),avgTicket:invoiced?revenue/invoiced:null,ticketCompletion:booked?revenue/booked:null,rotorAttach:rotorElig?rotorAtt/rotorElig:null,
+ let out={revenue,jobs,bookedAov:bookedEstimateJobs?sum('booked_revenue_with_estimate')/bookedEstimateJobs:null,bookedRpj:bookedEstimateJobs?sum('booked_repairs_count')/bookedEstimateJobs:null,bookedRotor:bookedEstimateJobs?sum('booked_rotor_attached_jobs_count')/bookedEstimateJobs:null,avgTicket:invoiced?revenue/invoiced:null,ticketCompletion:booked?revenue/booked:null,rotorAttach:rotorElig?rotorAtt/rotorElig:null,
   serviceRate:jobs?sum('service_call_jobs_count')/jobs:null,activeTechs:active,jobsPerTech:active?jobs/active:null,revPerTech:active?revenue/active:null,
   revenuePerDay:daysWorked?revenue/daysWorked:null,jobsPerDay:daysWorked?jobs/daysWorked:null,invoicedHours:sum('invoiced_minutes')/60,parts,
   clockedHours:hoursOK?clock:null,regularHours:hoursOK?hsum('regular'):null,overtimeHours:hoursOK?hsum('overtime'):null,holidayHours:hoursOK?hsum('holiday'):null,ptoHours:hoursOK?hsum('pto'):null,driveHours:hoursOK?drive:null,laborCost:laborOK?lc:null,payrollInvoicedHours:hoursOK?payrollInv:null,utilization:hoursOK&&clock?payrollInv/clock:null,totalEfficiency:hoursOK&&clock?(drive+payrollInv)/clock:null,laborPct:laborOK&&revenue?lc/revenue:null,
